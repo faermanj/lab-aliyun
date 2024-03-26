@@ -1,0 +1,4 @@
+# gitpod.io/#github.com/faermanj/lab-aliyun
+image:
+  file: .gitpod.Containerfile
+
