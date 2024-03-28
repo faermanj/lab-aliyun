@@ -1,0 +1,78 @@
+# aliyun ros CreateStack --StackName labay --TemplateURL 'file://template.ros.yaml' 
+
+ROSTemplateFormatVersion: '2015-09-01'
+Parameters:
+  RegionId:
+    Type: String
+    Default: cn-hangzhou
+  VpcCidrBlock:
+    Type: String
+    Default: '192.168.0.0/16'
+  VpcName:
+    Type: String
+    Default: ay-cluster-vpc
+  VSwitchCidrBlock:
+    Type: String
+    Default: '192.168.1.0/24'
+  VSwitchName:
+    Type: String
+    Default: ay-vswitch-a
+  SecurityGroupName:
+    Type: String
+    Default: ay-cluster-sg
+  ZoneId:
+    Type: String
+    Default: cn-hangzhou-a
+Resources:
+  AYVPC:
+    Type: 'ALIYUN::ECS::VPC'
+    Properties:
+      CidrBlock: 
+        Ref: VpcCidrBlock
+      RegionId: 
+        Ref: RegionId
+      VpcName: 
+        Ref: VpcName
+  AYVSwitch:
+    Type: 'ALIYUN::ECS::VSwitch'
+    Properties:
+      VpcId:
+        Ref: AYVPC
+      ZoneId: 
+        Ref: ZoneId
+      CidrBlock: 
+        Ref: VSwitchCidrBlock
+      VSwitchName: 
+        Ref: VSwitchName
+  AYSecurityGroup:
+    Type: 'ALIYUN::ECS::SecurityGroup'
+    Properties:
+      VpcId:
+        Ref: AYVPC
+      RegionId: 
+        Ref: RegionId
+      SecurityGroupName: 
+        Ref: SecurityGroupName
+  AYSecurityGroupIngressICMP:
+    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Properties:
+      RegionId: 
+        Ref: RegionId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: icmp
+      PortRange: '-1/-1'
+      SourceCidrIp: '0.0.0.0/0'
+  # Additional security group rules would follow the same pattern as AYSecurityGroupIngressICMP.
+  # Define other resources like NLB in a similar manner, referencing previous resources as needed.
+
+Outputs:
+  VPCID:
+    Value:
+      Ref: AYVPC
+  VSwitchID:
+    Value:
+      Ref: AYVSwitch
+  SecurityGroupID:
+    Value:
+      Ref: AYSecurityGroup
