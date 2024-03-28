@@ -37,8 +37,11 @@ aliyun ros CreateStack --region $AY_REGION \
     --StackName $AY_TEMPLATE_URL \
     --Parameters.0.ParameterKey=RegionId \
     --Parameters.0.ParameterValue=$AY_REGION \
-    --Parameters.0.ParameterKey=ZoneId \
-    --Parameters.0.ParameterValue=$AY_ZONE
+    --Parameters.1.ParameterKey=ZoneId \
+    --Parameters.1.ParameterValue=$AY_ZONE \
     --TemplateURL $AY_OBJECT_KEY  
+
+aliyun ros DescribeStack --region $AY_REGION \
+    --StackName $AY_TEMPLATE_URL 
 
 echo done
