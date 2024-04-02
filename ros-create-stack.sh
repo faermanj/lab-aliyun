@@ -3,8 +3,10 @@ set -x
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 AY_REGION="eu-central-1"
-AY_ZONE="eu-central-1a"
-AY_BUCKET_NAME="lab-aliyun-$AY_REGION"
+AY_ZONE_A="eu-central-1a"
+AY_ZONE_B="eu-central-1b"
+
+AY_BUCKET_NAME="lab-ay-$AY_REGION"
 
 export ALIBABA_CLOUD_REGION_ID=$AY_REGION
 
@@ -31,15 +33,21 @@ aliyun oss cp "$DIR/infra/ros/template.ros.yaml" $AY_OBJECT_KEY --region $AY_REG
 aliyun oss set-acl $AY_OBJECT_KEY public-read --region $AY_REGION
 
 AY_TEMPLATE_URL="https://$AY_BUCKET_NAME.oss-$AY_REGION.aliyuncs.com/$AY_OBJECT_NAME"
-AY_STACK_NAME="ay-${USER}-2"
+AY_STACK_NAME="ay-${USER}-3"
 
 aliyun ros CreateStack --region $AY_REGION \
     --StackName $AY_STACK_NAME \
     --Parameters.0.ParameterKey=RegionId \
     --Parameters.0.ParameterValue=$AY_REGION \
-    --Parameters.1.ParameterKey=ZoneId \
-    --Parameters.1.ParameterValue=$AY_ZONE \
-    --TemplateURL $AY_OBJECT_KEY | tee .ay-stack-create.log
+    --Parameters.1.ParameterKey=ZoneAId \
+    --Parameters.1.ParameterValue=$AY_ZONE_A \
+    --Parameters.2.ParameterKey=ZoneBId \
+    --Parameters.2.ParameterValue=$AY_ZONE_B \
+    --TemplateURL $AY_OBJECT_KEY | tee .ay-stack-create.out.log
+
+if [ $? -eq 0 ]; then
+    cp .ay-stack-create.out.log .ay-stack-create.log
+fi
 
 AY_STACK_ID=$(jq -r '.StackId' .ay-stack-create.log)
 aliyun ros GetStack --region $AY_REGION \

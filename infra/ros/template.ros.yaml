@@ -16,19 +16,25 @@ Parameters:
   VSwitchCidrBlock:
     Type: String
     Default: '192.168.1.0/24'
-  VSwitchName:
+  VSwitchAName:
     Type: String
     Default: ay-vswitch-a
+  VSwitchBName:
+    Type: String
+    Default: ay-vswitch-b
   SecurityGroupName:
     Type: String
     Default: ay-cluster-sg
-  ZoneId:
+  ZoneAId:
     Type: String
     Default: eu-central-1a
+  ZoneBId:
+    Type: String
+    Default: eu-central-1b
   # ECS
   InstallerInstanceType:
     Type: String
-    Default: ecs.c7.2xlarge
+    Default: ecs.g6.xlarge
   InstallerSystemDiskSize:
     Type: Number
     Default: 200
@@ -56,17 +62,29 @@ Resources:
       VpcName: 
         Ref: VpcName
 
-  AYVSwitch:
+  AYVSwitchA:
     Type: 'ALIYUN::ECS::VSwitch'
     Properties:
       VpcId:
         Ref: AYVPC
       ZoneId: 
-        Ref: ZoneId
+        Ref: ZoneAId
       CidrBlock: 
         Ref: VSwitchCidrBlock
       VSwitchName: 
-        Ref: VSwitchName
+        Ref: VSwitchAName
+  
+  AYVSwitchB:
+    Type: 'ALIYUN::ECS::VSwitch'
+    Properties:
+      VpcId:
+        Ref: AYVPC
+      ZoneId: 
+        Ref: ZoneBId
+      CidrBlock: 
+        Ref: VSwitchCidrBlock
+      VSwitchName: 
+        Ref: VSwitchBName
   
   AYSecurityGroup:
     Type: 'ALIYUN::ECS::SecurityGroup'
@@ -206,24 +224,30 @@ Resources:
       LoadBalancerType: 'nlb'
       ZoneMappings:
         - VSwitchId: 
-            Ref: AYVSwitch
+            Ref: AYVSwitchA
           ZoneId: 
-            Ref: ZoneId
+            Ref: ZoneAId
+        - VSwitchId: 
+            Ref: AYVSwitchB
+          ZoneId: 
+            Ref: ZoneBId
   
   InstallerECS:
       Type: 'ALIYUN::ECS::Instance'
       Properties:
+        InstanceName: installer
         InstanceType: 
           Ref: InstallerInstanceType
         ImageId: 
           Ref: RHCOSImageId
-        InstanceName: installer
         SecurityGroupId: 
           Ref: AYSecurityGroup
         VSwitchId:
-          Ref: AYVSwitch
+          Ref: AYVSwitchA
         ZoneId:
-          Ref: ZoneId
+          Ref: ZoneAId
+  #      IoOptimized: none
+  #      SystemDiskCategory: cloud
 
   # BootstrapECS:
   #     Type: 'ALIYUN::ECS::Instance'
@@ -240,17 +264,20 @@ Resources:
   #       SecurityGroupId: 
   #         Ref: AYSecurityGroup
   #       VSwitchId:
-  #         Ref: AYVSwitch
+  #         Ref: AYVSwitchA
   #       ZoneId:
-  #         Ref: ZoneId
+  #         Ref: ZoneAId
 
 Outputs:
   VPCID:
     Value:
       Ref: AYVPC
-  VSwitchID:
+  VSwitchAID:
     Value:
-      Ref: AYVSwitch
+      Ref: AYVSwitchA
+  VSwitchBID:
+    Value:
+      Ref: AYVSwitchA
   SecurityGroupID:
     Value:
       Ref: AYSecurityGroup

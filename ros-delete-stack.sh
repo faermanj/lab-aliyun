@@ -11,6 +11,6 @@ AY_STACK_ID=$(jq -r '.StackId' .ay-stack-create.log)
 echo "Updating stack $AY_STACK_ID with template $AY_OBJECT_KEY"
 
 aliyun ros DeleteStack --region $AY_REGION \
-    --StackId $AY_STACK_ID | tee ros-delete-stack.log
+    --StackId $AY_STACK_ID | tee .ros-delete-stack.log
 
 echo done
