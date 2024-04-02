@@ -2,9 +2,11 @@
 
 ROSTemplateFormatVersion: '2015-09-01'
 Parameters:
+  # General
   RegionId:
     Type: String
-    Default: cn-hangzhou
+    Default: eu-central-1
+  # Networking
   VpcCidrBlock:
     Type: String
     Default: '192.168.0.0/16'
@@ -22,7 +24,27 @@ Parameters:
     Default: ay-cluster-sg
   ZoneId:
     Type: String
-    Default: cn-hangzhou-a
+    Default: eu-central-1a
+  # ECS
+  InstallerInstanceType:
+    Type: String
+    Default: ecs.c7.2xlarge
+  InstallerSystemDiskSize:
+    Type: Number
+    Default: 200
+  BootstrapInstanceType:
+    Type: String
+    Default: ecs.g6.xlarge
+  BootstrapSystemDiskSize:
+    Type: Number
+    Default: 200
+  RHCOSImageId:
+    Type: String
+    Default: m-gw8ei55k4akujv5mqvrv
+  CentOSImageId:
+    Type: String
+    Default: m-gw8ei55k4akujv5mqvrv
+
 Resources:
   AYVPC:
     Type: 'ALIYUN::ECS::VPC'
@@ -33,6 +55,7 @@ Resources:
         Ref: RegionId
       VpcName: 
         Ref: VpcName
+
   AYVSwitch:
     Type: 'ALIYUN::ECS::VSwitch'
     Properties:
@@ -44,6 +67,7 @@ Resources:
         Ref: VSwitchCidrBlock
       VSwitchName: 
         Ref: VSwitchName
+  
   AYSecurityGroup:
     Type: 'ALIYUN::ECS::SecurityGroup'
     Properties:
@@ -53,6 +77,7 @@ Resources:
         Ref: RegionId
       SecurityGroupName: 
         Ref: SecurityGroupName
+  
   AYSecurityGroupIngressICMP:
     Type: 'ALIYUN::ECS::SecurityGroupIngress'
     Properties:
@@ -63,8 +88,161 @@ Resources:
       IpProtocol: icmp
       PortRange: '-1/-1'
       SourceCidrIp: '0.0.0.0/0'
-  # Additional security group rules would follow the same pattern as AYSecurityGroupIngressICMP.
-  # Define other resources like NLB in a similar manner, referencing previous resources as needed.
+  
+  # Rules for TCP
+  AYSecurityGroupIngressTCP9000_9999:
+    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Properties:
+      RegionId: 
+        Ref: RegionId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: tcp
+      PortRange: '9000/9999'
+      SourceCidrIp: '0.0.0.0/0'
+  
+  AYSecurityGroupIngressTCP10250_10259:
+    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Properties:
+      RegionId: 
+        Ref: RegionId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: tcp
+      PortRange: '10250/10259'
+      SourceCidrIp: '0.0.0.0/0'
+  
+  AYSecurityGroupIngressTCP10256:
+    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Properties:
+      RegionId: 
+        Ref: RegionId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: tcp
+      PortRange: '10256/10256'
+      SourceCidrIp: '0.0.0.0/0'
+  
+  # Rules for UDP
+  AYSecurityGroupIngressUDP4789:
+    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Properties:
+      RegionId: 
+        Ref: RegionId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: udp
+      PortRange: '4789/4789'
+      SourceCidrIp: '0.0.0.0/0'
+  
+  AYSecurityGroupIngressUDP6081:
+    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Properties:
+      RegionId: 
+        Ref: RegionId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: udp
+      PortRange: '6081/6081'
+      SourceCidrIp: '0.0.0.0/0'
+  
+  AYSecurityGroupIngressUDP9000_9999:
+    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Properties:
+      RegionId: 
+        Ref: RegionId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: udp
+      PortRange: '9000/9999'
+      SourceCidrIp: '0.0.0.0/0'
+  
+  # Rules for TCP/UDP
+  AYSecurityGroupIngressTCP30000_32767:
+      Type: 'ALIYUN::ECS::SecurityGroupIngress'
+      Properties:
+        SecurityGroupId:
+          Ref: AYSecurityGroup
+        IpProtocol: tcp
+        PortRange: '30000/32767'
+        SourceCidrIp: '0.0.0.0/0'
+
+  AYSecurityGroupIngressUDP30000_32767:
+      Type: 'ALIYUN::ECS::SecurityGroupIngress'
+      Properties:
+        SecurityGroupId:
+          Ref: AYSecurityGroup
+        IpProtocol: udp
+        PortRange: '30000/32767'
+        SourceCidrIp: '0.0.0.0/0'
+  # TODO Those are only needed for control plane
+  AYSecurityGroupIngressCPTCP2379_2380:
+      Type: 'ALIYUN::ECS::SecurityGroupIngress'
+      Properties:
+        SecurityGroupId:
+          Ref: AYSecurityGroup
+        IpProtocol: tcp
+        PortRange: '2379/2380'
+        SourceCidrIp: '0.0.0.0/0'
+
+  AYSecurityGroupIngressCPTCP6443:
+      Type: 'ALIYUN::ECS::SecurityGroupIngress'
+      Properties:
+        SecurityGroupId:
+          Ref: AYSecurityGroup
+        IpProtocol: tcp
+        PortRange: '6443/6443'
+        SourceCidrIp: '0.0.0.0/0'
+
+  AYNLB:
+    Type: 'ALIYUN::NLB::LoadBalancer'
+    Properties:
+      AddressType: 'Internet'
+      RegionId: 
+        Ref: RegionId
+      VpcId: 
+        Ref: AYVPC
+      LoadBalancerName: ay-cluster-nlb
+      LoadBalancerType: 'nlb'
+      ZoneMappings:
+        - VSwitchId: 
+            Ref: AYVSwitch
+          ZoneId: 
+            Ref: ZoneId
+  
+  InstallerECS:
+      Type: 'ALIYUN::ECS::Instance'
+      Properties:
+        InstanceType: 
+          Ref: InstallerInstanceType
+        ImageId: 
+          Ref: RHCOSImageId
+        InstanceName: installer
+        SecurityGroupId: 
+          Ref: AYSecurityGroup
+        VSwitchId:
+          Ref: AYVSwitch
+        ZoneId:
+          Ref: ZoneId
+
+  # BootstrapECS:
+  #     Type: 'ALIYUN::ECS::Instance'
+  #     Properties:
+  #       InstanceType: 
+  #         Ref: BootstrapInstanceType
+  #       ImageId: 
+  #         Ref: RHCOSImageId
+  #       SystemDisk:
+  #         Category: cloud_ssd
+  #         Size: 
+  #           Ref: BootstrapSystemDiskSize
+  #       InstanceName: bootstrap
+  #       SecurityGroupId: 
+  #         Ref: AYSecurityGroup
+  #       VSwitchId:
+  #         Ref: AYVSwitch
+  #       ZoneId:
+  #         Ref: ZoneId
 
 Outputs:
   VPCID:

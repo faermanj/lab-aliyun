@@ -33,16 +33,15 @@ aliyun oss set-acl $AY_OBJECT_KEY public-read --region $AY_REGION
 AY_TEMPLATE_URL="https://$AY_BUCKET_NAME.oss-$AY_REGION.aliyuncs.com/$AY_OBJECT_NAME"
 AY_STACK_NAME="ay-${USER}-2"
 
-aliyun ros CreateStack --region $AY_REGION \
-    --StackName $AY_STACK_NAME \
+AY_STACK_ID=$(jq -r '.StackId' .ay-stack-create.log)
+echo "Updating stack $AY_STACK_ID with template $AY_OBJECT_KEY"
+
+aliyun ros UpdateStack --region $AY_REGION \
+    --StackId $AY_STACK_ID \
     --Parameters.0.ParameterKey=RegionId \
     --Parameters.0.ParameterValue=$AY_REGION \
     --Parameters.1.ParameterKey=ZoneId \
     --Parameters.1.ParameterValue=$AY_ZONE \
-    --TemplateURL $AY_OBJECT_KEY | tee .ay-stack-create.log
-
-AY_STACK_ID=$(jq -r '.StackId' .ay-stack-create.log)
-aliyun ros GetStack --region $AY_REGION \
-    --StackId $AY_STACK_ID
+    --TemplateURL $AY_OBJECT_KEY | tee .ay-stack-update.log
 
 echo done
