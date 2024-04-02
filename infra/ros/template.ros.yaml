@@ -13,9 +13,12 @@ Parameters:
   VpcName:
     Type: String
     Default: ay-cluster-vpc
-  VSwitchCidrBlock:
+  VSwitchCidrBlockA:
     Type: String
     Default: '192.168.1.0/24'
+  VSwitchCidrBlockB:
+    Type: String
+    Default: '192.168.2.0/24'
   VSwitchAName:
     Type: String
     Default: ay-vswitch-a
@@ -70,7 +73,7 @@ Resources:
       ZoneId: 
         Ref: ZoneAId
       CidrBlock: 
-        Ref: VSwitchCidrBlock
+        Ref: VSwitchCidrBlockA
       VSwitchName: 
         Ref: VSwitchAName
   
@@ -82,7 +85,7 @@ Resources:
       ZoneId: 
         Ref: ZoneBId
       CidrBlock: 
-        Ref: VSwitchCidrBlock
+        Ref: VSwitchCidrBlockB
       VSwitchName: 
         Ref: VSwitchBName
   

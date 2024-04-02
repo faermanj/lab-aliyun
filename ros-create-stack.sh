@@ -33,7 +33,7 @@ aliyun oss cp "$DIR/infra/ros/template.ros.yaml" $AY_OBJECT_KEY --region $AY_REG
 aliyun oss set-acl $AY_OBJECT_KEY public-read --region $AY_REGION
 
 AY_TEMPLATE_URL="https://$AY_BUCKET_NAME.oss-$AY_REGION.aliyuncs.com/$AY_OBJECT_NAME"
-AY_STACK_NAME="ay-${USER}-3"
+AY_STACK_NAME="ay-${USER}-4"
 
 aliyun ros CreateStack --region $AY_REGION \
     --StackName $AY_STACK_NAME \
@@ -46,11 +46,14 @@ aliyun ros CreateStack --region $AY_REGION \
     --TemplateURL $AY_OBJECT_KEY | tee .ay-stack-create.out.log
 
 if [ $? -eq 0 ]; then
-    cp .ay-stack-create.out.log .ay-stack-create.log
+    AY_STACK_ID=$(jq -r '.StackId' .ay-stack-create.log)
+    echo "Stack [$AY_STACK_ID] created successfully."
+    echo $AY_STACK_ID > .ay-stack-id.txt
+    aliyun ros GetStack --region $AY_REGION \
+    --StackId $AY_STACK_ID
+else
+    echo "Failed to create stack $AY_STACK_NAME."
 fi
 
-AY_STACK_ID=$(jq -r '.StackId' .ay-stack-create.log)
-aliyun ros GetStack --region $AY_REGION \
-    --StackId $AY_STACK_ID
 
 echo done
