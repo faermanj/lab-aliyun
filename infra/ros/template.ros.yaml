@@ -6,6 +6,9 @@ Parameters:
   RegionId:
     Type: String
     Default: eu-central-1
+  EnvId:
+    Type: String
+    Default: lab-ay1
   # Networking
   VpcCidrBlock:
     Type: String
@@ -34,6 +37,9 @@ Parameters:
   ZoneBId:
     Type: String
     Default: eu-central-1b
+  # Security
+  PublicKeyBody:
+    Type: String
   # ECS
   InstallerInstanceType:
     Type: String
@@ -196,6 +202,7 @@ Resources:
         IpProtocol: udp
         PortRange: '30000/32767'
         SourceCidrIp: '0.0.0.0/0'
+  
   # TODO Those are only needed for control plane
   AYSecurityGroupIngressCPTCP2379_2380:
       Type: 'ALIYUN::ECS::SecurityGroupIngress'
@@ -224,7 +231,6 @@ Resources:
       VpcId: 
         Ref: AYVPC
       LoadBalancerName: ay-cluster-nlb
-      LoadBalancerType: 'nlb'
       ZoneMappings:
         - VSwitchId: 
             Ref: AYVSwitchA
@@ -235,8 +241,18 @@ Resources:
           ZoneId: 
             Ref: ZoneBId
   
-  InstallerECS:
+
+  AYSSHKeyPair:
+    Type: ALIYUN::ECS::SSHKeyPair
+    Properties:
+      KeyPairName:
+        Fn::Sub: ${EnvId}-keypair
+      PublicKeyBody:
+        Ref: PublicKeyBody
+
+  AYInstallerInstance:
       Type: 'ALIYUN::ECS::Instance'
+      DependsOn: AYSSHKeyPair
       Properties:
         InstanceName: installer
         InstanceType: 
@@ -249,9 +265,24 @@ Resources:
           Ref: AYVSwitchA
         ZoneId:
           Ref: ZoneAId
+  #      KeyPairName:
+  #        Fn::Sub: ${EnvId}-keypair
   #      IoOptimized: none
   #      SystemDiskCategory: cloud
 
+  AYSSHKeyPairAttachment:
+     Type: ALIYUN::ECS::SSHKeyPairAttachment
+     DependsOn:
+       - AYSSHKeyPair
+       - AYInstallerInstance
+     Properties:
+       KeyPairName: 
+          Fn::GetAtt:
+            - AYSSHKeyPair
+            - KeyPairName
+       InstanceIds:
+         - Ref: AYInstallerInstance
+  
   # BootstrapECS:
   #     Type: 'ALIYUN::ECS::Instance'
   #     Properties:
@@ -284,3 +315,11 @@ Outputs:
   SecurityGroupID:
     Value:
       Ref: AYSecurityGroup
+  InstallerInstanceID:
+    Value:
+      Ref: AYInstallerInstance
+  InstallerInstancePublicIp:
+    Value:
+      Fn::GetAtt:
+        - AYInstallerInstance
+        - PublicIp
