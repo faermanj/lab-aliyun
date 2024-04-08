@@ -53,12 +53,13 @@ Parameters:
   BootstrapSystemDiskSize:
     Type: Number
     Default: 200
-  RHCOSImageId:
+  InstallerImageId:
     Type: String
     Default: m-gw8ei55k4akujv5mqvrv
-  CentOSImageId:
+  AliBabaLinuxImageId:
     Type: String
-    Default: m-gw8ei55k4akujv5mqvrv
+    Default: aliyun_3_9_x64_20G_alibase_20231219.vhd
+
 
 Resources:
   AYVPC:
@@ -267,7 +268,7 @@ Resources:
         InstanceType: 
           Ref: InstallerInstanceType
         ImageId: 
-          Ref: RHCOSImageId
+          Ref: InstallerImageId # AliBabaLinuxImageId
         SecurityGroupId: 
           Ref: AYSecurityGroup
         VSwitchId:
@@ -276,6 +277,8 @@ Resources:
           Ref: ZoneAId
         UserData: |
           #!/bin/bash
+          export AY_LOG=/tmp/ay.log.txt
+          echo "Initializing installer instance with log[$LOG]" | tee $LOG
           curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash
 
   AYSSHKeyPairAttachment:
@@ -297,7 +300,7 @@ Resources:
   #       InstanceType: 
   #         Ref: BootstrapInstanceType
   #       ImageId: 
-  #         Ref: RHCOSImageId
+  #         Ref: InstallerImageId
   #       SystemDisk:
   #         Category: cloud_ssd
   #         Size: 

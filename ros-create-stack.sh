@@ -67,7 +67,7 @@ else
 fi
 
 while true; do
-  AY_STACK_STATUS=$(aliyun ros GetStack --region $AY_REGION --StackId $AY_STACK_ID | jq -r '.Stack.Status')
+  AY_STACK_STATUS=$(aliyun ros GetStack --region $AY_REGION --StackId $AY_STACK_ID | jq -r '.Status')
   if [ "$AY_STACK_STATUS" == "CREATE_COMPLETE" ]; then
     echo "Stack $AY_STACK_NAME created successfully."
     break
