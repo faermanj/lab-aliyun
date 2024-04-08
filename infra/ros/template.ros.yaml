@@ -343,14 +343,4 @@ Outputs:
         - PublicIp
   InstallerInstanceSSHCmd:
     Value:
-      Fn::Sub: ssh root@${AYInstallerInstance.PublicIp}
-  KeyPairName:
-    Value:
-      Fn::GetAtt:
-        - AYSSHKeyPair
-        - KeyPairName
-  KeyPairPrivateKey:
-    Value:
-      Fn::GetAtt:
-        - AYSSHKeyPair
-        - PrivateKeyBody
+      Fn::Sub: ssh -i ${KeyPairName}.pem root@${AYInstallerInstance.PublicIp}
