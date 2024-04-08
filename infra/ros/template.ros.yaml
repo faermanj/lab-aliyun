@@ -221,6 +221,15 @@ Resources:
         IpProtocol: tcp
         PortRange: '6443/6443'
         SourceCidrIp: '0.0.0.0/0'
+  
+  AYSecurityGroupIngressCPTCP22:
+      Type: 'ALIYUN::ECS::SecurityGroupIngress'
+      Properties:
+        SecurityGroupId:
+          Ref: AYSecurityGroup
+        IpProtocol: tcp
+        PortRange: '22/22'
+        SourceCidrIp: '0.0.0.0/0'
 
   AYNLB:
     Type: 'ALIYUN::NLB::LoadBalancer'
@@ -322,3 +331,7 @@ Outputs:
       Fn::GetAtt:
         - AYInstallerInstance
         - PublicIp
+  InstallerInstanceSSHCmd:
+    Value:
+      Fn::Sub: ssh root@${AYInstallerInstance.PublicIp}
+

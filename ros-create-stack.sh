@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+# set -ex
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 AY_REGION="eu-central-1"
@@ -12,6 +12,7 @@ export ALIBABA_CLOUD_REGION_ID=$AY_REGION
 
 # Check if the bucket exists
 BUCKET_EXISTS=$(aliyun oss ls | grep $AY_BUCKET_NAME)
+echo "BUCKET_EXISTS [$BUCKET_EXISTS]"
 
 if [ -z "$BUCKET_EXISTS" ]; then
   echo "Bucket $AY_BUCKET_NAME does not exist. Creating..."
@@ -84,7 +85,7 @@ AY_INSTALLER_INSTANCE_PUBLIC_IP=$(aliyun ros GetStack --region $AY_REGION --Stac
 echo "*******"
 echo "Stack Id: $AY_STACK_ID"
 echo "Installer SSH: ssh root@$AY_INSTALLER_INSTANCE_PUBLIC_IP"
-
+aliyun ros DescribeStacks --StackId "$AY_STACK_ID" | jq -r '.Stacks[0].Outputs[] | "\(.OutputKey) = \(.OutputValue)"'
 echo "*******"
 
 echo done
