@@ -265,10 +265,9 @@ Resources:
           Ref: AYVSwitchA
         ZoneId:
           Ref: ZoneAId
-  #      KeyPairName:
-  #        Fn::Sub: ${EnvId}-keypair
-  #      IoOptimized: none
-  #      SystemDiskCategory: cloud
+        UserData: |
+          #!/bin/bash
+          curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash
 
   AYSSHKeyPairAttachment:
      Type: ALIYUN::ECS::SSHKeyPairAttachment

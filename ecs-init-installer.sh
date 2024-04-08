@@ -1,3 +1,4 @@
+# curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash
 #!/bin/bash
 set -x
 

@@ -84,6 +84,7 @@ AY_INSTALLER_INSTANCE_PUBLIC_IP=$(aliyun ros GetStack --region $AY_REGION --Stac
 echo "*******"
 echo "Stack Id: $AY_STACK_ID"
 echo "Installer SSH: ssh root@$AY_INSTALLER_INSTANCE_PUBLIC_IP"
+
 echo "*******"
 
 echo done
