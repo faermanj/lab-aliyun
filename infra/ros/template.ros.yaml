@@ -61,7 +61,7 @@ Parameters:
   InstallerImageId:
     Type: String
     Default: centos_7_9_x64_20G_alibase_20240220.vhd
-  AllocatePublicIp:
+  AllocatePublicIP:
     Type: String
     Default: true
   InternetMaxBandwidthOut:
@@ -274,7 +274,6 @@ Resources:
 
   AYInstallerInstance:
       Type: 'ALIYUN::ECS::Instance'
-      DependsOn: AYSSHKeyPair
       Properties:
         InstanceName: installer
         InstanceType: 
@@ -287,8 +286,8 @@ Resources:
           Ref: AYVSwitchA
         ZoneId:
           Ref: ZoneAId
-        AllocatePublicIp:
-          Ref: AllocatePublicIp
+        AllocatePublicIP:
+          Ref: AllocatePublicIP
         InternetMaxBandwidthOut:
           Ref: InternetMaxBandwidthOut
         KeyPairName:
