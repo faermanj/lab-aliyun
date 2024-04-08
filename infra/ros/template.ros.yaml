@@ -1,6 +1,7 @@
 # aliyun ros CreateStack --StackName labay --TemplateURL 'file://template.ros.yaml' 
 
 ROSTemplateFormatVersion: '2015-09-01'
+Description: 'OpenShift on AliBaba Cloud Developer Preview'
 Parameters:
   # General
   RegionId:
@@ -53,12 +54,22 @@ Parameters:
   BootstrapSystemDiskSize:
     Type: Number
     Default: 200
-  RHCOSImageId:
+  # Imgage Ids on eu-central-1
+  # RHEL: m-gw8ei55k4akujv5mqvrv (asks password?)
+  # CentOS: centos_7_9_x64_20G_alibase_20240220.vhd
+  # Alibaba Cloud Linux: aliyun_3_9_x64_20G_alibase_20231219.vhd
+  InstallerImageId:
     Type: String
-    Default: m-gw8ei55k4akujv5mqvrv
-  CentOSImageId:
+    Default: centos_7_9_x64_20G_alibase_20240220.vhd
+  AllocatePublicIp:
     Type: String
-    Default: m-gw8ei55k4akujv5mqvrv
+    Default: true
+  InternetMaxBandwidthOut:
+    Type: Number
+    Default: 100
+  KeyPairName:
+    Type: String
+    Default: jufaerma-eu-central-1
 
 Resources:
   AYVPC:
@@ -260,15 +271,6 @@ Resources:
             Ref: AYVSwitchB
           ZoneId: 
             Ref: ZoneBId
-  
-
-  AYSSHKeyPair:
-    Type: ALIYUN::ECS::SSHKeyPair
-    Properties:
-      KeyPairName:
-        Fn::Sub: ${EnvId}-keypair
-      PublicKeyBody:
-        Ref: PublicKeyBody
 
   AYInstallerInstance:
       Type: 'ALIYUN::ECS::Instance'
@@ -278,31 +280,26 @@ Resources:
         InstanceType: 
           Ref: InstallerInstanceType
         ImageId: 
-          Ref: RHCOSImageId
+          Ref: InstallerImageId
         SecurityGroupId: 
           Ref: AYSecurityGroup
         VSwitchId:
           Ref: AYVSwitchA
         ZoneId:
           Ref: ZoneAId
+        AllocatePublicIp:
+          Ref: AllocatePublicIp
+        InternetMaxBandwidthOut:
+          Ref: InternetMaxBandwidthOut
+        KeyPairName:
+          Ref: KeyPairName
         UserData: |
           #!/bin/bash
           export AY_LOG=/tmp/ay.log.txt
           echo "Initializing installer instance with log[$LOG]" | tee $LOG
           curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash
 
-  AYSSHKeyPairAttachment:
-     Type: ALIYUN::ECS::SSHKeyPairAttachment
-     DependsOn:
-       - AYSSHKeyPair
-       - AYInstallerInstance
-     Properties:
-       KeyPairName: 
-          Fn::GetAtt:
-            - AYSSHKeyPair
-            - KeyPairName
-       InstanceIds:
-         - Ref: AYInstallerInstance
+
   
   # BootstrapECS:
   #     Type: 'ALIYUN::ECS::Instance'
@@ -347,3 +344,13 @@ Outputs:
   InstallerInstanceSSHCmd:
     Value:
       Fn::Sub: ssh root@${AYInstallerInstance.PublicIp}
+  KeyPairName:
+    Value:
+      Fn::GetAtt:
+        - AYSSHKeyPair
+        - KeyPairName
+  KeyPairPrivateKey:
+    Value:
+      Fn::GetAtt:
+        - AYSSHKeyPair
+        - PrivateKeyBody
