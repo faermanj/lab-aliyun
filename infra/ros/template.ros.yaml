@@ -344,3 +344,6 @@ Outputs:
       Fn::GetAtt:
         - AYInstallerInstance
         - PublicIp
+  InstallerInstanceSSHCmd:
+    Value:
+      Fn::Sub: ssh root@${AYInstallerInstance.PublicIp}
