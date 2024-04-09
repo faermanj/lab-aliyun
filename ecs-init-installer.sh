@@ -3,10 +3,17 @@
 set -x
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-TMP="$DIR/tmp"
+TMP="/tmp/labay"
 
 mkdir -p $TMP
-curl -Lv -o -o $TMP/$RHCOS_ISO  https://github.com/faermanj/lab-aliyun/archive/refs/heads/main.zip
+curl -Lv -O $TMP  https://github.com/faermanj/lab-aliyun/archive/refs/heads/main.zip
+cd $TMP
+unzip main.zip
+
+echo "=== OpenShift LabAY Install Script ==="
+echo "pwd: $(pwd)"
+echo "whoami: $(whoami)"
+echo "find:"
 find .
 
-echo done
+echo "=== OpenShift LabAY Install Script Done ==="

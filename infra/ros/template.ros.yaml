@@ -56,11 +56,11 @@ Parameters:
     Default: 200
   # Imgage Ids on eu-central-1
   # RHEL: m-gw8ei55k4akujv5mqvrv (asks password?)
-  # CentOS: centos_7_9_x64_20G_alibase_20240220.vhd
+  # CentOS: centos_7_9_x64_20G_alibase_20240220.vhd (ssh ok)
   # Alibaba Cloud Linux: aliyun_3_9_x64_20G_alibase_20231219.vhd
   InstallerImageId:
     Type: String
-    Default: centos_7_9_x64_20G_alibase_20240220.vhd
+    Default: aliyun_3_9_x64_20G_alibase_20231219.vhd
   AllocatePublicIP:
     Type: String
     Default: true
@@ -294,8 +294,9 @@ Resources:
           Ref: KeyPairName
         UserData: |
           #!/bin/bash
-          export AY_LOG=/tmp/ay.log.txt
-          echo "Initializing installer instance with log[$LOG]" | tee $LOG
+          echo "Initializing installer instance"
+          export AY_LOG=
+          echo "Initializing installer instance with log" | tee /tmp/ay.log.txt
           curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash
 
 
