@@ -12,8 +12,9 @@ TMP="/tmp/labay"
 yum -y install unzip
 
 mkdir -p $TMP
-curl -Lv -O $TMP  https://github.com/faermanj/lab-aliyun/archive/refs/heads/main.zip
 cd $TMP
+curl -LOv https://github.com/faermanj/lab-aliyun/archive/refs/heads/main.zip
+
 unzip main.zip
 
 echo "find:"
