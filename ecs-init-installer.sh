@@ -2,7 +2,9 @@
 #!/bin/bash
 set -x
 
-echo "=== OpenShift LabAY Install Script ==="
+VERSION="0.0.1"
+
+echo "=== OpenShift LabAY Install Script $VERSION ==="
 echo "pwd: $(pwd)"
 echo "whoami: $(whoami)"
 
@@ -45,4 +47,4 @@ sudo mv '/tmp/oc/oc' '/usr/local/bin/'
 sudo mv '/tmp/oc/kubectl' '/usr/local/bin/' 
 rm '/tmp/oc/openshift-client-linux.tar.gz' 
 
-echo "=== OpenShift LabAY Install Script Done ==="
+echo "=== OpenShift LabAY Install Script Done $VERSION ==="
