@@ -69,4 +69,10 @@ qemu-img create -f qcow2 coreos-b.qcow2 30g
 qemu-img create -f qcow2 coreos-m.qcow2 30g
 qemu-img create -f qcow2 coreos-w.qcow2 30g
 
+export RHCOS_ISO_PATH="/mnt/vm/$RHCOS_ISO"
+export QCOW_PATH="/mnt/vm/coreos-b.qcow2"
+export QCOW_NAME="coreos-b"
+envsubst < qcow-config.env.xml > qcow-config.$QCOW_NAME.xml
+
+
 echo "=== OpenShift LabAY Install Script Done $VERSION ==="
