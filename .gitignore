@@ -1,15 +1,7 @@
 .*
-<<<<<<< HEAD
-
-.*.log
-.*.txt
-.*.json
-
-tmp
-=======
 
 .*log*
 .*txt*
 .*json*
 .keys
->>>>>>> 1a6800d (wip)
+*.pem
