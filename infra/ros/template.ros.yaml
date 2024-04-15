@@ -1,3 +1,5 @@
+# Reference Implementation of OpenShift on AliBaba
+# see: https://www.alibabacloud.com/blog/alibaba-cloud-red-hat-openshift-container-platform-4-6-deployment-guide_597599
 # aliyun ros CreateStack --StackName labay --TemplateURL 'file://template.ros.yaml' 
 
 ROSTemplateFormatVersion: '2015-09-01'
@@ -271,7 +273,45 @@ Resources:
             Ref: AYVSwitchB
           ZoneId: 
             Ref: ZoneBId
+  
+  # LISTENERS
+  AYEIPA:
+    Type: 'ALIYUN::VPC::EIP'
+    Properties:
+      Bandwidth: '100'
+      InternetChargeType: 'PayByTraffic'
 
+  AYNatGatewayA:
+    Type: 'ALIYUN::VPC::NatGateway'
+    Properties:
+      VpcId: !Ref AYVPC
+      VSwitchId: !Ref AYVSwitchA
+
+  AYEIPAAssociation:
+    Type: 'ALIYUN::VPC::EIPAssociation'
+    Properties:
+      AllocationId: !Ref AYEIPA
+      InstanceId: !Ref AYNatGatewayA
+
+  # Storage Bucket
+  AYBucket:
+    Type: 'ALIYUN::OSS::Bucket'
+    Properties:
+      BucketName:
+        Fn::Sub: ${EnvId}-bucket 
+      AccessControl: public-read #TODO: make private?
+
+# NAS Instance
+  AYNASInstance:
+    Type: 'ALIYUN::NAS::FileSystem'
+    Properties:
+      ProtocolType: 'NFS'  # or 'SMB' depending on your needs
+      StorageType: 'Performance'  # Other option is 'Capacity'
+      Description: 'NAS file system for container storage'
+      ZoneId: 'cn-hangzhou-b'  # Specify your zone ID
+      FileSystemType: 'ext4'  # or 'ext3' depending on your needs
+
+  # ECS Instances
   AYInstallerInstance:
       Type: 'ALIYUN::ECS::Instance'
       Properties:

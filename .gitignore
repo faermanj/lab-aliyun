@@ -5,3 +5,5 @@
 .*json*
 .keys
 *.pem
+
+*.iso
