@@ -52,7 +52,7 @@ aliyun ros CreateStack --region $AY_REGION \
     --Parameters.4.ParameterValue="$AY_SSH_KEY" \
     --Parameters.5.ParameterKey="EnvId" \
     --Parameters.5.ParameterValue="$AY_STACK_NAME" \
-    --TemplateURL $AY_OBJECT_KEY | tee .ay-stack-create.json
+    --TemplateURL $AY_TEMPLATE_URL | tee .ay-stack-create.json
 
 AY_STACK_ID=$(jq -r '.StackId' .ay-stack-create.json)
 echo $AY_STACK_ID > .ay-stack-id.txt
