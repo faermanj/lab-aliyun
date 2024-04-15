@@ -301,16 +301,16 @@ Resources:
         Fn::Sub: ${EnvId}-bucket 
       AccessControl: public-read #TODO: make private?
 
-# NAS Instance
+  # NAS Instance
   AYNASInstance:
     Type: 'ALIYUN::NAS::FileSystem'
     Properties:
-      ProtocolType: 'NFS'  # or 'SMB' depending on your needs
-      StorageType: 'Performance'  # Other option is 'Capacity'
+      ProtocolType: 'NFS'
+      FileSystemType: 'standard'
+      StorageType: 'Capacity'
       Description: 'NAS file system for container storage'
-      ZoneId: 'cn-hangzhou-b'  # Specify your zone ID
-      FileSystemType: 'ext4'  # or 'ext3' depending on your needs
-
+      ZoneId: !Ref ZoneAId
+x
   # ECS Instances
   AYInstallerInstance:
       Type: 'ALIYUN::ECS::Instance'
