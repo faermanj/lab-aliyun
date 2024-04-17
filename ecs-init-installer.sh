@@ -1,6 +1,10 @@
-# curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash
 #!/bin/bash
 set -x
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+# curlsh
+# curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash
+
 
 VERSION="0.0.1"
 
@@ -10,8 +14,8 @@ echo "whoami: $(whoami)"
 
 echo "Installing openshift clients"
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TMP="/tmp/labay"
+INSTALL_DIR="$TMP/openshift-install/"
 
 yum -y install unzip
 
@@ -20,7 +24,8 @@ cd $TMP
 curl -LOv https://github.com/faermanj/lab-aliyun/archive/refs/heads/main.zip
 
 unzip main.zip
-cd lab-aliyun-main
+REPO_DIR="$TMP/lab-aliyun-main"
+cd $REPO_DIR
 
 echo "Installing openshift clients"
 
@@ -48,7 +53,19 @@ sudo mv '/tmp/oc/kubectl' '/usr/local/bin/'
 rm '/tmp/oc/openshift-client-linux.tar.gz' 
 oc version client
 
+mkdir -p "$INSTALL_DIR"
 
+echo "Generate install config"
+envsubst < $REPO_DIR/install-config.env.yaml > $INSTALL_DIR/install-config.yaml
 
+echo "Generate manifests"
+openshift-install create manifests --dir="$INSTALL_DIR"
+# Step 2: Set the mastersSchedulable parameter in the /Installation_dir/manifests/cluster-scheduler-02-config.yml file to False to prevent pod scheduling on control plane machines.
+
+echo "Generate ignition files"
+openshift-install create ignition-configs --dir="$INSTALL_DIR"
+
+echo "Install Dir"
+find "$INSTALL_DIR"
 
 echo "=== OpenShift LabAY Install Script Done $VERSION ==="
