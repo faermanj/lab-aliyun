@@ -56,7 +56,7 @@ Parameters:
   # RHEL: m-gw8ei55k4akujv5mqvrv (asks password?)
   # CentOS: centos_7_9_x64_20G_alibase_20240220.vhd (ssh ok)
   # Alibaba Cloud Linux: aliyun_3_9_x64_20G_alibase_20231219.vhd
-  InstallerImageId:
+  LinuxImageId:
     Type: String
     Default: aliyun_3_9_x64_20G_alibase_20231219.vhd
   AllocatePublicIP:
@@ -68,7 +68,8 @@ Parameters:
   KeyPairName:
     Type: String
     Default: jufaerma-eu-central-1
-
+  AIImageId:
+    Type: String
 Resources:
   AYVPC:
     Type: 'ALIYUN::ECS::VPC'
@@ -307,6 +308,27 @@ Resources:
       ZoneId: !Ref ZoneAId
 
   # ECS Instances
+  AYBastionInstance:
+      Type: 'ALIYUN::ECS::Instance'
+      Properties:
+        InstanceName: installer
+        InstanceType: 
+          Ref: InstallerInstanceType
+        ImageId: 
+          Ref: LinuxImageId
+        SecurityGroupId: 
+          Ref: AYSecurityGroup
+        VSwitchId:
+          Ref: AYVSwitchA
+        ZoneId:
+          Ref: ZoneAId
+        AllocatePublicIP:
+          Ref: AllocatePublicIP
+        InternetMaxBandwidthOut:
+          Ref: InternetMaxBandwidthOut
+        KeyPairName:
+          Ref: KeyPairName
+
   AYInstallerInstance:
       Type: 'ALIYUN::ECS::Instance'
       Properties:
@@ -314,7 +336,7 @@ Resources:
         InstanceType: 
           Ref: InstallerInstanceType
         ImageId: 
-          Ref: InstallerImageId
+          Ref: AIImageId
         SecurityGroupId: 
           Ref: AYSecurityGroup
         VSwitchId:
@@ -332,7 +354,7 @@ Resources:
           echo "Initializing installer instance"
           export AY_LOG=
           echo "Initializing installer instance with log" | tee /tmp/ay.log.txt
-          curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash
+          echo "DISABLED curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash"
 
 Outputs:
   VPCID:
