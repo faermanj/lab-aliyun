@@ -2,11 +2,12 @@
 set -x
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-AY_REGION="eu-central-1"
+AY_REGION=${AY_REGION:-"eu-central-1"} 
+AY_BUCKET_NAME=${AY_BUCKET_NAME:-"lab-ay-$AY_REGION"}
+
 AY_ZONE_A="eu-central-1a"
 AY_ZONE_B="eu-central-1b"
 
-AY_BUCKET_NAME="lab-ay-$AY_REGION"
 
 export ALIBABA_CLOUD_REGION_ID=$AY_REGION
 
@@ -52,6 +53,8 @@ aliyun ros CreateStack --region $AY_REGION \
     --Parameters.4.ParameterValue="$AY_SSH_KEY" \
     --Parameters.5.ParameterKey="EnvId" \
     --Parameters.5.ParameterValue="$AY_STACK_NAME" \
+    --Parameters.6.ParameterKey="AIImageId" \
+    --Parameters.6.ParameterValue="$AY_IMAGE_ID" \
     --TemplateURL $AY_TEMPLATE_URL | tee .ay-stack-create.json
 
 AY_STACK_ID=$(jq -r '.StackId' .ay-stack-create.json)

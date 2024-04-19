@@ -1,0 +1,41 @@
+ROSTemplateFormatVersion: '2015-09-01'
+Description: 'OpenShift on AliBaba Cloud Developer Preview - Networking Tier'
+Parameters:
+  # General
+  RegionId:
+    Type: String
+    Default: eu-central-1
+  EnvId:
+    Type: String
+    Default: lab-ay1
+  # Networking
+  VpcCidrBlock:
+    Type: String
+    Default: '192.168.0.0/16'
+  VpcName:
+    Type: String
+    Default: ay-cluster-vpc
+  VSwitchCidrBlockA:
+    Type: String
+    Default: '192.168.1.0/24'
+  VSwitchCidrBlockB:
+    Type: String
+    Default: '192.168.2.0/24'
+  VSwitchAName:
+    Type: String
+    Default: ay-vswitch-a
+  VSwitchBName:
+    Type: String
+    Default: ay-vswitch-b
+  SecurityGroupName:
+    Type: String
+    Default: ay-cluster-sg
+  ZoneAId:
+    Type: String
+    Default: eu-central-1a
+  ZoneBId:
+    Type: String
+    Default: eu-central-1b
+
+Resources:
+# TODO
