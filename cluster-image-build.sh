@@ -1,6 +1,5 @@
 #!/bin/bash
-set -egit show HEAD
-x
+set -ex
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 SRC_DIR=$(dirname $SCRIPT_DIR)
