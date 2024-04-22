@@ -42,16 +42,16 @@ Parameters:
   # ECS
   InstallerInstanceType:
     Type: String
-    Default: ecs.g6.xlarge
+    Default: ecs.g6.2xlarge
   InstallerSystemDiskSize:
     Type: Number
-    Default: 200
+    Default: 500
   BootstrapInstanceType:
     Type: String
     Default: ecs.g6.xlarge
   BootstrapSystemDiskSize:
     Type: Number
-    Default: 200
+    Default: 500
   # Imgage Ids on eu-central-1
   # RHEL: m-gw8ei55k4akujv5mqvrv (asks password?)
   # CentOS: centos_7_9_x64_20G_alibase_20240220.vhd (ssh ok)
@@ -70,6 +70,18 @@ Parameters:
     Default: jufaerma-eu-central-1
   AIImageId:
     Type: String
+  InstanceSystemSize:
+    Type: Number
+    Default: 256
+  InstanceSystemLevel:
+    Type: String
+    Default: L1
+  InstanceDataSize:
+    Type: Number
+    Default: 1024
+  InstanceDataLevel:
+    Type: String
+    Default: L1
 Resources:
   AYVPC:
     Type: 'ALIYUN::ECS::VPC'
@@ -328,11 +340,18 @@ Resources:
           Ref: InternetMaxBandwidthOut
         KeyPairName:
           Ref: KeyPairName
+        UserData: |        
+          #!/bin/bash
+          echo "Initializing installer instance"
+          export AY_LOG=
+          echo "Initializing installer instance with log" | tee /tmp/ay.log.txt
+          echo "DISABLED curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash"
+        
 
   AYInstallerInstance:
       Type: 'ALIYUN::ECS::Instance'
       Properties:
-        InstanceName: installer
+        InstanceName: template-instance
         InstanceType: 
           Ref: InstallerInstanceType
         ImageId: 
@@ -349,12 +368,248 @@ Resources:
           Ref: InternetMaxBandwidthOut
         KeyPairName:
           Ref: KeyPairName
-        UserData: |
-          #!/bin/bash
-          echo "Initializing installer instance"
-          export AY_LOG=
-          echo "Initializing installer instance with log" | tee /tmp/ay.log.txt
-          echo "DISABLED curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash"
+        SystemDiskCategory: cloud_essd
+        SystemDiskSize: 
+          Ref: InstanceSystemSize
+        DiskMappings:
+          - Category: cloud_essd
+            Size: 
+              Ref: InstanceDataSize
+        Tags:
+          - Key: EnvId
+            Value: 
+              Ref: EnvId
+          - Key: node-role.kubernetes.io/master
+            Value: ""
+
+  AYMasterInstance1:
+      Type: 'ALIYUN::ECS::Instance'
+      Properties:
+        InstanceName: 
+          Fn::Sub: ${EnvId}-master-1
+        InstanceType: 
+          Ref: InstallerInstanceType
+        ImageId: 
+          Ref: AIImageId
+        SecurityGroupId: 
+          Ref: AYSecurityGroup
+        VSwitchId:
+          Ref: AYVSwitchA
+        ZoneId:
+          Ref: ZoneAId
+        AllocatePublicIP:
+          Ref: AllocatePublicIP
+        InternetMaxBandwidthOut:
+          Ref: InternetMaxBandwidthOut
+        KeyPairName:
+          Ref: KeyPairName
+        SystemDiskCategory: cloud_essd
+        SystemDiskSize: 
+          Ref: InstanceSystemSize
+        DiskMappings:
+          - Category: cloud_essd
+            Size: 
+              Ref: InstanceDataSize
+        Tags:
+          - Key: Name
+            Value: 
+              Fn::Sub: ${EnvId}-master-1
+          - Key: EnvId
+            Value: 
+              Ref: EnvId
+          - Key: node-role.kubernetes.io/master
+            Value: ""
+
+  AYMasterInstance2:
+      Type: 'ALIYUN::ECS::Instance'
+      Properties:
+        InstanceName:
+          Fn::Sub: ${EnvId}-master-2
+        InstanceType: 
+          Ref: InstallerInstanceType
+        ImageId: 
+          Ref: AIImageId
+        SecurityGroupId: 
+          Ref: AYSecurityGroup
+        VSwitchId:
+          Ref: AYVSwitchA
+        ZoneId:
+          Ref: ZoneAId
+        AllocatePublicIP:
+          Ref: AllocatePublicIP
+        InternetMaxBandwidthOut:
+          Ref: InternetMaxBandwidthOut
+        KeyPairName:
+          Ref: KeyPairName
+        SystemDiskCategory: cloud_essd
+        SystemDiskSize: 
+          Ref: InstanceSystemSize
+        DiskMappings:
+          - Category: cloud_essd
+            Size: 
+              Ref: InstanceDataSize
+        Tags:
+          - Key: Name
+            Value: 
+              Fn::Sub: ${EnvId}-master-2
+          - Key: EnvId
+            Value: 
+              Ref: EnvId
+          - Key: node-role.kubernetes.io/master
+            Value: ""
+
+  AYMasterInstance3:
+      Type: 'ALIYUN::ECS::Instance'
+      Properties:
+        InstanceName:
+          Fn::Sub: ${EnvId}-master-3
+        InstanceType: 
+          Ref: InstallerInstanceType
+        ImageId: 
+          Ref: AIImageId
+        SecurityGroupId: 
+          Ref: AYSecurityGroup
+        VSwitchId:
+          Ref: AYVSwitchA
+        ZoneId:
+          Ref: ZoneAId
+        AllocatePublicIP:
+          Ref: AllocatePublicIP
+        InternetMaxBandwidthOut:
+          Ref: InternetMaxBandwidthOut
+        KeyPairName:
+          Ref: KeyPairName
+        SystemDiskCategory: cloud_essd
+        SystemDiskSize: 
+          Ref: InstanceSystemSize
+        DiskMappings:
+          - Category: cloud_essd
+            Size: 
+              Ref: InstanceDataSize
+        Tags:
+          - Key: Name
+            Value: 
+              Fn::Sub: ${EnvId}-master-3
+          - Key: EnvId
+            Value: 
+              Ref: EnvId
+          - Key: node-role.kubernetes.io/master
+            Value: ""
+
+  AYWorkerInstance1:
+      Type: 'ALIYUN::ECS::Instance'
+      Properties:
+        InstanceName:
+          Fn::Sub: ${EnvId}-worker-1
+        InstanceType: 
+          Ref: InstallerInstanceType
+        ImageId: 
+          Ref: AIImageId
+        SecurityGroupId: 
+          Ref: AYSecurityGroup
+        VSwitchId:
+          Ref: AYVSwitchA
+        ZoneId:
+          Ref: ZoneAId
+        AllocatePublicIP:
+          Ref: AllocatePublicIP
+        InternetMaxBandwidthOut:
+          Ref: InternetMaxBandwidthOut
+        KeyPairName:
+          Ref: KeyPairName
+        SystemDiskCategory: cloud_essd
+        SystemDiskSize: 
+          Ref: InstanceSystemSize
+        DiskMappings:
+          - Category: cloud_essd
+            Size: 
+              Ref: InstanceDataSize
+        Tags:
+          - Key: Name
+            Value: 
+              Fn::Sub: ${EnvId}-worker-1
+          - Key: EnvId
+            Value: 
+              Ref: EnvId
+          - Key: node-role.kubernetes.io/master
+            Value: ""
+
+  AYWorkerInstance2:
+      Type: 'ALIYUN::ECS::Instance'
+      Properties:
+        InstanceName: 
+          Fn::Sub: ${EnvId}-worker-2
+        InstanceType: 
+          Ref: InstallerInstanceType
+        ImageId: 
+          Ref: AIImageId
+        SecurityGroupId: 
+          Ref: AYSecurityGroup
+        VSwitchId:
+          Ref: AYVSwitchA
+        ZoneId:
+          Ref: ZoneAId
+        AllocatePublicIP:
+          Ref: AllocatePublicIP
+        InternetMaxBandwidthOut:
+          Ref: InternetMaxBandwidthOut
+        KeyPairName:
+          Ref: KeyPairName
+        SystemDiskCategory: cloud_essd
+        SystemDiskSize: 
+          Ref: InstanceSystemSize
+        DiskMappings:
+          - Category: cloud_essd
+            Size: 
+              Ref: InstanceDataSize
+        Tags:
+          - Key: Name
+            Value: 
+              Fn::Sub: ${EnvId}-worker-2
+          - Key: EnvId
+            Value: 
+              Ref: EnvId
+          - Key: node-role.kubernetes.io/worker
+            Value: ""
+
+  AYWorkerInstance3:
+      Type: 'ALIYUN::ECS::Instance'
+      Properties:
+        InstanceName:
+          Fn::Sub: ${EnvId}-worker-3
+        InstanceType: 
+          Ref: InstallerInstanceType
+        ImageId: 
+          Ref: AIImageId
+        SecurityGroupId: 
+          Ref: AYSecurityGroup
+        VSwitchId:
+          Ref: AYVSwitchA
+        ZoneId:
+          Ref: ZoneAId
+        AllocatePublicIP:
+          Ref: AllocatePublicIP
+        InternetMaxBandwidthOut:
+          Ref: InternetMaxBandwidthOut
+        KeyPairName:
+          Ref: KeyPairName
+        SystemDiskCategory: cloud_essd
+        SystemDiskSize: 
+          Ref: InstanceSystemSize
+        DiskMappings:
+          - Category: cloud_essd
+            Size: 
+              Ref: InstanceDataSize
+        Tags:
+          - Key: Name
+            Value: 
+              Fn::Sub: ${EnvId}-worker-3
+          - Key: EnvId
+            Value: 
+              Ref: EnvId
+          - Key: node-role.kubernetes.io/worker
+            Value: ""
+
 
 Outputs:
   VPCID:

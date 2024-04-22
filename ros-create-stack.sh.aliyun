@@ -8,7 +8,6 @@ AY_BUCKET_NAME=${AY_BUCKET_NAME:-"lab-ay-$AY_REGION"}
 AY_ZONE_A="eu-central-1a"
 AY_ZONE_B="eu-central-1b"
 
-
 export ALIBABA_CLOUD_REGION_ID=$AY_REGION
 
 # Check if the bucket exists
@@ -55,7 +54,8 @@ aliyun ros CreateStack --region $AY_REGION \
     --Parameters.5.ParameterValue="$AY_STACK_NAME" \
     --Parameters.6.ParameterKey="AIImageId" \
     --Parameters.6.ParameterValue="$AY_IMAGE_ID" \
-    --TemplateURL $AY_TEMPLATE_URL | tee .ay-stack-create.json
+    --TemplateURL $AY_TEMPLATE_URL \
+    --read-timeout 60 | tee .ay-stack-create.json
 
 AY_STACK_ID=$(jq -r '.StackId' .ay-stack-create.json)
 echo $AY_STACK_ID > .ay-stack-id.txt
@@ -75,7 +75,10 @@ while true; do
     echo "Stack $AY_STACK_NAME created successfully."
     break
   elif [ "$AY_STACK_STATUS" == "CREATE_FAILED" ]; then
-    echo "Stack $AY_STACK_NAME creation failed."
+    echo "Stack $AY_STACK_NAME creation failed.CREATE_FAILED"
+    break
+  elif [ "$AY_STACK_STATUS" == "CREATE_ROLLBACK_COMPLETE" ]; then
+    echo "Stack $AY_STACK_NAME creation failed. CREATE_ROLLBACK_COMPLETE"
     break
   else
     echo "Stack $AY_STACK_NAME status: $AY_STACK_STATUS"
@@ -88,7 +91,7 @@ AY_INSTALLER_INSTANCE_PUBLIC_IP=$(aliyun ros GetStack --region $AY_REGION --Stac
 echo "*******"
 echo "Stack Id: $AY_STACK_ID"
 echo "Installer SSH: ssh root@$AY_INSTALLER_INSTANCE_PUBLIC_IP"
-aliyun ros GetStack --StackId "$AY_STACK_ID" | jq -r '.Stacks[0].Outputs[] | "\(.OutputKey) = \(.OutputValue)"'
+aliyun ros GetStack --StackId "$AY_STACK_ID" --region "$AY_REGION" 
 echo "*******"
 
 echo done
