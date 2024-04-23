@@ -619,7 +619,7 @@ Resources:
       DomainName:
         Ref: DomainName
       RR: 
-        Fn::Sub: "api.${ClusterName}.${DomainName}"
+        Fn::Sub: "api.${ClusterName}"
       Type: CNAME
       Value:
         Fn::GetAtt:
@@ -632,7 +632,7 @@ Resources:
       DomainName:
         Ref: DomainName
       RR: 
-        Fn::Sub: "api-int.${ClusterName}.${DomainName}"
+        Fn::Sub: "api-int.${ClusterName}"
       Type: CNAME
       Value:
         Fn::GetAtt:
@@ -645,7 +645,7 @@ Resources:
       DomainName:
         Ref: DomainName
       RR: 
-        Fn::Sub: "*.apps.${ClusterName}.${DomainName}"
+        Fn::Sub: "*.apps.${ClusterName}"
       Type: CNAME
       Value:
         Fn::GetAtt:
