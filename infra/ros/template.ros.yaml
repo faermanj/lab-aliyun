@@ -612,6 +612,64 @@ Resources:
             Ref: EnvId
         - Key: node-role.kubernetes.io/worker
           Value: ""
+   
+  AYWorkerServerGroup:
+    Type: 'ALIYUN::NLB::ServerGroup'
+    Properties:
+      LoadBalancerId: 
+        Ref: AYNLB
+      VpcId: 
+        Ref: VpcId
+      Protocol: TCP
+
+  AYMasterServerGroup:
+    Type: 'ALIYUN::NLB::ServerGroup'
+    Properties:
+      LoadBalancerId: 
+        Ref: AYNLB
+      VpcId: 
+        Ref: VpcId
+      Protocol: TCP
+
+
+  NLBListener6443:
+    Type: 'ALIYUN::NLB::Listener'
+    Properties:
+      LoadBalancerId: 
+        Ref: AYNLB
+      ListenerProtocol: TCP
+      ListenerPort: 6443
+      ServerGroupId: 
+        Ref: AYMasterServerGroup
+    
+  AYMasterInstance1Group:
+    Type: 'ALIYUN::NLB::ServerGroupServer'
+    Properties:
+      ServerGroupId: 
+        Ref: AYMasterServerGroup
+      ServerId: 
+        Ref: AYMasterInstance1
+      Port: 6443
+      Weight: 100
+  AYMasterInstance2Group:
+    Type: 'ALIYUN::NLB::ServerGroupServer'
+    Properties:
+      ServerGroupId: 
+        Ref: AYMasterServerGroup
+      ServerId: 
+        Ref: AYMasterInstance2
+      Port: 6443
+      Weight: 100
+  AYMasterInstance3Group:
+    Type: 'ALIYUN::NLB::ServerGroupServer'
+    Properties:
+      ServerGroupId: 
+        Ref: AYMasterServerGroup
+      ServerId: 
+        Ref: AYMasterInstance3
+      Port: 6443
+      Weight: 100
+
 
   AYAPIRecord:
     Type: ALIYUN::DNS::DomainRecord
