@@ -104,9 +104,9 @@ aliyun ecs ImportImage \
 
 export AY_IMAGE_ID=$(jq -r '.ImageId' .import-image.log.json)
 echo "# Container Creation Settings"
-echo "export AY_CLUSTER_NAME=$AY_CLUSTER_NAME"
 echo "export AY_BASE_DOMAIN=$AY_BASE_DOMAIN"
 echo "export AY_OCP_VERSION=$AY_OCP_VERSION"
 echo "export AY_IMAGE_ID=$AY_IMAGE_ID"
+echo "export AY_CLUSTER_NAME=$AY_CLUSTER_NAME"
 
 echo "=== OpenShift LabAY Image Generation Script Done $VERSION ==="

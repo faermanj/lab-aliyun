@@ -1,5 +1,5 @@
-ROSTemplateFormatVersion: '2015-09-01'
-Description: 'OpenShift on AliBaba Cloud Developer Preview'
+ROSTemplateFormatVersion: "2015-09-01"
+Description: "OpenShift on AliBaba Cloud Developer Preview"
 Parameters:
   # General
   RegionId:
@@ -11,16 +11,16 @@ Parameters:
   # Networking
   VpcCidrBlock:
     Type: String
-    Default: '192.168.0.0/16'
+    Default: "192.168.0.0/16"
   VpcName:
     Type: String
     Default: ay-cluster-vpc
   VSwitchCidrBlockA:
     Type: String
-    Default: '192.168.1.0/24'
+    Default: "192.168.1.0/24"
   VSwitchCidrBlockB:
     Type: String
-    Default: '192.168.2.0/24'
+    Default: "192.168.2.0/24"
   VSwitchAName:
     Type: String
     Default: ay-vswitch-a
@@ -82,534 +82,546 @@ Parameters:
   InstanceDataLevel:
     Type: String
     Default: L1
+  DomainName:
+    Type: String
 Resources:
   AYVPC:
-    Type: 'ALIYUN::ECS::VPC'
+    Type: "ALIYUN::ECS::VPC"
     Properties:
-      CidrBlock: 
+      CidrBlock:
         Ref: VpcCidrBlock
-      RegionId: 
+      RegionId:
         Ref: RegionId
-      VpcName: 
+      VpcName:
         Ref: VpcName
 
   AYVSwitchA:
-    Type: 'ALIYUN::ECS::VSwitch'
+    Type: "ALIYUN::ECS::VSwitch"
     Properties:
       VpcId:
         Ref: AYVPC
-      ZoneId: 
+      ZoneId:
         Ref: ZoneAId
-      CidrBlock: 
+      CidrBlock:
         Ref: VSwitchCidrBlockA
-      VSwitchName: 
+      VSwitchName:
         Ref: VSwitchAName
-  
+
   AYVSwitchB:
-    Type: 'ALIYUN::ECS::VSwitch'
+    Type: "ALIYUN::ECS::VSwitch"
     Properties:
       VpcId:
         Ref: AYVPC
-      ZoneId: 
+      ZoneId:
         Ref: ZoneBId
-      CidrBlock: 
+      CidrBlock:
         Ref: VSwitchCidrBlockB
-      VSwitchName: 
+      VSwitchName:
         Ref: VSwitchBName
-  
+
   AYSecurityGroup:
-    Type: 'ALIYUN::ECS::SecurityGroup'
+    Type: "ALIYUN::ECS::SecurityGroup"
     Properties:
       VpcId:
         Ref: AYVPC
-      RegionId: 
+      RegionId:
         Ref: RegionId
-      SecurityGroupName: 
+      SecurityGroupName:
         Ref: SecurityGroupName
-  
+
   AYSecurityGroupIngressICMP:
-    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
     Properties:
-      RegionId: 
+      RegionId:
         Ref: RegionId
       SecurityGroupId:
         Ref: AYSecurityGroup
       IpProtocol: icmp
-      PortRange: '-1/-1'
-      SourceCidrIp: '0.0.0.0/0'
-  
+      PortRange: "-1/-1"
+      SourceCidrIp: "0.0.0.0/0"
+
   # Rules for TCP
   AYSecurityGroupIngressTCP22:
-    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
     Properties:
-      RegionId: 
+      RegionId:
         Ref: RegionId
       SecurityGroupId:
         Ref: AYSecurityGroup
       IpProtocol: tcp
-      PortRange: '22/22'
-      SourceCidrIp: '0.0.0.0/0'
+      PortRange: "22/22"
+      SourceCidrIp: "0.0.0.0/0"
 
   AYSecurityGroupIngressTCP9000_9999:
-    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
     Properties:
-      RegionId: 
+      RegionId:
         Ref: RegionId
       SecurityGroupId:
         Ref: AYSecurityGroup
       IpProtocol: tcp
-      PortRange: '9000/9999'
-      SourceCidrIp: '0.0.0.0/0'
-  
+      PortRange: "9000/9999"
+      SourceCidrIp: "0.0.0.0/0"
+
   AYSecurityGroupIngressTCP10250_10259:
-    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
     Properties:
-      RegionId: 
+      RegionId:
         Ref: RegionId
       SecurityGroupId:
         Ref: AYSecurityGroup
       IpProtocol: tcp
-      PortRange: '10250/10259'
-      SourceCidrIp: '0.0.0.0/0'
-  
+      PortRange: "10250/10259"
+      SourceCidrIp: "0.0.0.0/0"
+
   AYSecurityGroupIngressTCP10256:
-    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
     Properties:
-      RegionId: 
+      RegionId:
         Ref: RegionId
       SecurityGroupId:
         Ref: AYSecurityGroup
       IpProtocol: tcp
-      PortRange: '10256/10256'
-      SourceCidrIp: '0.0.0.0/0'
-  
+      PortRange: "10256/10256"
+      SourceCidrIp: "0.0.0.0/0"
+
   # Rules for UDP
   AYSecurityGroupIngressUDP4789:
-    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
     Properties:
-      RegionId: 
+      RegionId:
         Ref: RegionId
       SecurityGroupId:
         Ref: AYSecurityGroup
       IpProtocol: udp
-      PortRange: '4789/4789'
-      SourceCidrIp: '0.0.0.0/0'
-  
+      PortRange: "4789/4789"
+      SourceCidrIp: "0.0.0.0/0"
+
   AYSecurityGroupIngressUDP6081:
-    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
     Properties:
-      RegionId: 
+      RegionId:
         Ref: RegionId
       SecurityGroupId:
         Ref: AYSecurityGroup
       IpProtocol: udp
-      PortRange: '6081/6081'
-      SourceCidrIp: '0.0.0.0/0'
-  
+      PortRange: "6081/6081"
+      SourceCidrIp: "0.0.0.0/0"
+
   AYSecurityGroupIngressUDP9000_9999:
-    Type: 'ALIYUN::ECS::SecurityGroupIngress'
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
     Properties:
-      RegionId: 
+      RegionId:
         Ref: RegionId
       SecurityGroupId:
         Ref: AYSecurityGroup
       IpProtocol: udp
-      PortRange: '9000/9999'
-      SourceCidrIp: '0.0.0.0/0'
-  
+      PortRange: "9000/9999"
+      SourceCidrIp: "0.0.0.0/0"
+
   # Rules for TCP/UDP
   AYSecurityGroupIngressTCP30000_32767:
-      Type: 'ALIYUN::ECS::SecurityGroupIngress'
-      Properties:
-        SecurityGroupId:
-          Ref: AYSecurityGroup
-        IpProtocol: tcp
-        PortRange: '30000/32767'
-        SourceCidrIp: '0.0.0.0/0'
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
+    Properties:
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: tcp
+      PortRange: "30000/32767"
+      SourceCidrIp: "0.0.0.0/0"
 
   AYSecurityGroupIngressUDP30000_32767:
-      Type: 'ALIYUN::ECS::SecurityGroupIngress'
-      Properties:
-        SecurityGroupId:
-          Ref: AYSecurityGroup
-        IpProtocol: udp
-        PortRange: '30000/32767'
-        SourceCidrIp: '0.0.0.0/0'
-  
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
+    Properties:
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: udp
+      PortRange: "30000/32767"
+      SourceCidrIp: "0.0.0.0/0"
+
   # TODO Those are only needed for control plane
   AYSecurityGroupIngressCPTCP2379_2380:
-      Type: 'ALIYUN::ECS::SecurityGroupIngress'
-      Properties:
-        SecurityGroupId:
-          Ref: AYSecurityGroup
-        IpProtocol: tcp
-        PortRange: '2379/2380'
-        SourceCidrIp: '0.0.0.0/0'
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
+    Properties:
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: tcp
+      PortRange: "2379/2380"
+      SourceCidrIp: "0.0.0.0/0"
 
   AYSecurityGroupIngressCPTCP6443:
-      Type: 'ALIYUN::ECS::SecurityGroupIngress'
-      Properties:
-        SecurityGroupId:
-          Ref: AYSecurityGroup
-        IpProtocol: tcp
-        PortRange: '6443/6443'
-        SourceCidrIp: '0.0.0.0/0'
-  
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
+    Properties:
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: tcp
+      PortRange: "6443/6443"
+      SourceCidrIp: "0.0.0.0/0"
+
   AYSecurityGroupIngressCPTCP22:
-      Type: 'ALIYUN::ECS::SecurityGroupIngress'
-      Properties:
-        SecurityGroupId:
-          Ref: AYSecurityGroup
-        IpProtocol: tcp
-        PortRange: '22/22'
-        SourceCidrIp: '0.0.0.0/0'
+    Type: "ALIYUN::ECS::SecurityGroupIngress"
+    Properties:
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      IpProtocol: tcp
+      PortRange: "22/22"
+      SourceCidrIp: "0.0.0.0/0"
 
   AYNLB:
-    Type: 'ALIYUN::NLB::LoadBalancer'
+    Type: "ALIYUN::NLB::LoadBalancer"
     Properties:
-      AddressType: 'Internet'
-      RegionId: 
+      AddressType: "Internet"
+      RegionId:
         Ref: RegionId
-      VpcId: 
+      VpcId:
         Ref: AYVPC
       LoadBalancerName: ay-cluster-nlb
       ZoneMappings:
-        - VSwitchId: 
+        - VSwitchId:
             Ref: AYVSwitchA
-          ZoneId: 
+          ZoneId:
             Ref: ZoneAId
-        - VSwitchId: 
+        - VSwitchId:
             Ref: AYVSwitchB
-          ZoneId: 
+          ZoneId:
             Ref: ZoneBId
-  
+
   # LISTENERS
   AYEIPA:
-    Type: 'ALIYUN::VPC::EIP'
+    Type: "ALIYUN::VPC::EIP"
     Properties:
-      Bandwidth: '100'
-      InternetChargeType: 'PayByTraffic'
+      Bandwidth: "100"
+      InternetChargeType: "PayByTraffic"
 
   AYNatGatewayA:
-    Type: 'ALIYUN::VPC::NatGateway'
+    Type: "ALIYUN::VPC::NatGateway"
     Properties:
       VpcId: !Ref AYVPC
       VSwitchId: !Ref AYVSwitchA
 
   AYEIPAAssociation:
-    Type: 'ALIYUN::VPC::EIPAssociation'
+    Type: "ALIYUN::VPC::EIPAssociation"
     Properties:
       AllocationId: !Ref AYEIPA
       InstanceId: !Ref AYNatGatewayA
 
   # Storage Bucket
   AYBucket:
-    Type: 'ALIYUN::OSS::Bucket'
+    Type: "ALIYUN::OSS::Bucket"
     Properties:
       BucketName:
-        Fn::Sub: ${EnvId}-bucket 
+        Fn::Sub: ${EnvId}-bucket
       AccessControl: public-read #TODO: make private?
 
   # NAS Instance
   AYNASInstance:
-    Type: 'ALIYUN::NAS::FileSystem'
+    Type: "ALIYUN::NAS::FileSystem"
     Properties:
-      ProtocolType: 'NFS'
-      FileSystemType: 'standard'
-      StorageType: 'Capacity'
+      ProtocolType: "NFS"
+      FileSystemType: "standard"
+      StorageType: "Capacity"
       ZoneId: !Ref ZoneAId
 
   # ECS Instances
   AYBastionInstance:
-      Type: 'ALIYUN::ECS::Instance'
-      Properties:
-        InstanceName: installer
-        InstanceType: 
-          Ref: InstallerInstanceType
-        ImageId: 
-          Ref: LinuxImageId
-        SecurityGroupId: 
-          Ref: AYSecurityGroup
-        VSwitchId:
-          Ref: AYVSwitchA
-        ZoneId:
-          Ref: ZoneAId
-        AllocatePublicIP:
-          Ref: AllocatePublicIP
-        InternetMaxBandwidthOut:
-          Ref: InternetMaxBandwidthOut
-        KeyPairName:
-          Ref: KeyPairName
-        UserData: |        
-          #!/bin/bash
-          echo "Initializing installer instance"
-          export AY_LOG=
-          echo "Initializing installer instance with log" | tee /tmp/ay.log.txt
-          echo "DISABLED curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash"
-        
+    Type: "ALIYUN::ECS::Instance"
+    Properties:
+      InstanceName: installer
+      InstanceType:
+        Ref: InstallerInstanceType
+      ImageId:
+        Ref: LinuxImageId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      VSwitchId:
+        Ref: AYVSwitchA
+      ZoneId:
+        Ref: ZoneAId
+      AllocatePublicIP:
+        Ref: AllocatePublicIP
+      InternetMaxBandwidthOut:
+        Ref: InternetMaxBandwidthOut
+      KeyPairName:
+        Ref: KeyPairName
+      UserData: |
+        #!/bin/bash
+        echo "Initializing installer instance"
+        export AY_LOG=
+        echo "Initializing installer instance with log" | tee /tmp/ay.log.txt
+        echo "DISABLED curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash"
 
   AYInstallerInstance:
-      Type: 'ALIYUN::ECS::Instance'
-      Properties:
-        InstanceName: template-instance
-        InstanceType: 
-          Ref: InstallerInstanceType
-        ImageId: 
-          Ref: AIImageId
-        SecurityGroupId: 
-          Ref: AYSecurityGroup
-        VSwitchId:
-          Ref: AYVSwitchA
-        ZoneId:
-          Ref: ZoneAId
-        AllocatePublicIP:
-          Ref: AllocatePublicIP
-        InternetMaxBandwidthOut:
-          Ref: InternetMaxBandwidthOut
-        KeyPairName:
-          Ref: KeyPairName
-        SystemDiskCategory: cloud_essd
-        SystemDiskSize: 
-          Ref: InstanceSystemSize
-        DiskMappings:
-          - Category: cloud_essd
-            Size: 
-              Ref: InstanceDataSize
-        Tags:
-          - Key: EnvId
-            Value: 
-              Ref: EnvId
-          - Key: node-role.kubernetes.io/master
-            Value: ""
+    Type: "ALIYUN::ECS::Instance"
+    Properties:
+      InstanceName: template-instance
+      InstanceType:
+        Ref: InstallerInstanceType
+      ImageId:
+        Ref: AIImageId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      VSwitchId:
+        Ref: AYVSwitchA
+      ZoneId:
+        Ref: ZoneAId
+      AllocatePublicIP:
+        Ref: AllocatePublicIP
+      InternetMaxBandwidthOut:
+        Ref: InternetMaxBandwidthOut
+      KeyPairName:
+        Ref: KeyPairName
+      SystemDiskCategory: cloud_essd
+      SystemDiskSize:
+        Ref: InstanceSystemSize
+      DiskMappings:
+        - Category: cloud_essd
+          Size:
+            Ref: InstanceDataSize
+      Tags:
+        - Key: EnvId
+          Value:
+            Ref: EnvId
+        - Key: node-role.kubernetes.io/master
+          Value: ""
 
   AYMasterInstance1:
-      Type: 'ALIYUN::ECS::Instance'
-      Properties:
-        InstanceName: 
-          Fn::Sub: ${EnvId}-master-1
-        InstanceType: 
-          Ref: InstallerInstanceType
-        ImageId: 
-          Ref: AIImageId
-        SecurityGroupId: 
-          Ref: AYSecurityGroup
-        VSwitchId:
-          Ref: AYVSwitchA
-        ZoneId:
-          Ref: ZoneAId
-        AllocatePublicIP:
-          Ref: AllocatePublicIP
-        InternetMaxBandwidthOut:
-          Ref: InternetMaxBandwidthOut
-        KeyPairName:
-          Ref: KeyPairName
-        SystemDiskCategory: cloud_essd
-        SystemDiskSize: 
-          Ref: InstanceSystemSize
-        DiskMappings:
-          - Category: cloud_essd
-            Size: 
-              Ref: InstanceDataSize
-        Tags:
-          - Key: Name
-            Value: 
-              Fn::Sub: ${EnvId}-master-1
-          - Key: EnvId
-            Value: 
-              Ref: EnvId
-          - Key: node-role.kubernetes.io/master
-            Value: ""
+    Type: "ALIYUN::ECS::Instance"
+    Properties:
+      InstanceName:
+        Fn::Sub: ${EnvId}-master-1
+      InstanceType:
+        Ref: InstallerInstanceType
+      ImageId:
+        Ref: AIImageId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      VSwitchId:
+        Ref: AYVSwitchA
+      ZoneId:
+        Ref: ZoneAId
+      AllocatePublicIP:
+        Ref: AllocatePublicIP
+      InternetMaxBandwidthOut:
+        Ref: InternetMaxBandwidthOut
+      KeyPairName:
+        Ref: KeyPairName
+      SystemDiskCategory: cloud_essd
+      SystemDiskSize:
+        Ref: InstanceSystemSize
+      DiskMappings:
+        - Category: cloud_essd
+          Size:
+            Ref: InstanceDataSize
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Sub: ${EnvId}-master-1
+        - Key: EnvId
+          Value:
+            Ref: EnvId
+        - Key: node-role.kubernetes.io/master
+          Value: ""
 
   AYMasterInstance2:
-      Type: 'ALIYUN::ECS::Instance'
-      Properties:
-        InstanceName:
-          Fn::Sub: ${EnvId}-master-2
-        InstanceType: 
-          Ref: InstallerInstanceType
-        ImageId: 
-          Ref: AIImageId
-        SecurityGroupId: 
-          Ref: AYSecurityGroup
-        VSwitchId:
-          Ref: AYVSwitchA
-        ZoneId:
-          Ref: ZoneAId
-        AllocatePublicIP:
-          Ref: AllocatePublicIP
-        InternetMaxBandwidthOut:
-          Ref: InternetMaxBandwidthOut
-        KeyPairName:
-          Ref: KeyPairName
-        SystemDiskCategory: cloud_essd
-        SystemDiskSize: 
-          Ref: InstanceSystemSize
-        DiskMappings:
-          - Category: cloud_essd
-            Size: 
-              Ref: InstanceDataSize
-        Tags:
-          - Key: Name
-            Value: 
-              Fn::Sub: ${EnvId}-master-2
-          - Key: EnvId
-            Value: 
-              Ref: EnvId
-          - Key: node-role.kubernetes.io/master
-            Value: ""
+    Type: "ALIYUN::ECS::Instance"
+    Properties:
+      InstanceName:
+        Fn::Sub: ${EnvId}-master-2
+      InstanceType:
+        Ref: InstallerInstanceType
+      ImageId:
+        Ref: AIImageId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      VSwitchId:
+        Ref: AYVSwitchA
+      ZoneId:
+        Ref: ZoneAId
+      AllocatePublicIP:
+        Ref: AllocatePublicIP
+      InternetMaxBandwidthOut:
+        Ref: InternetMaxBandwidthOut
+      KeyPairName:
+        Ref: KeyPairName
+      SystemDiskCategory: cloud_essd
+      SystemDiskSize:
+        Ref: InstanceSystemSize
+      DiskMappings:
+        - Category: cloud_essd
+          Size:
+            Ref: InstanceDataSize
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Sub: ${EnvId}-master-2
+        - Key: EnvId
+          Value:
+            Ref: EnvId
+        - Key: node-role.kubernetes.io/master
+          Value: ""
 
   AYMasterInstance3:
-      Type: 'ALIYUN::ECS::Instance'
-      Properties:
-        InstanceName:
-          Fn::Sub: ${EnvId}-master-3
-        InstanceType: 
-          Ref: InstallerInstanceType
-        ImageId: 
-          Ref: AIImageId
-        SecurityGroupId: 
-          Ref: AYSecurityGroup
-        VSwitchId:
-          Ref: AYVSwitchA
-        ZoneId:
-          Ref: ZoneAId
-        AllocatePublicIP:
-          Ref: AllocatePublicIP
-        InternetMaxBandwidthOut:
-          Ref: InternetMaxBandwidthOut
-        KeyPairName:
-          Ref: KeyPairName
-        SystemDiskCategory: cloud_essd
-        SystemDiskSize: 
-          Ref: InstanceSystemSize
-        DiskMappings:
-          - Category: cloud_essd
-            Size: 
-              Ref: InstanceDataSize
-        Tags:
-          - Key: Name
-            Value: 
-              Fn::Sub: ${EnvId}-master-3
-          - Key: EnvId
-            Value: 
-              Ref: EnvId
-          - Key: node-role.kubernetes.io/master
-            Value: ""
+    Type: "ALIYUN::ECS::Instance"
+    Properties:
+      InstanceName:
+        Fn::Sub: ${EnvId}-master-3
+      InstanceType:
+        Ref: InstallerInstanceType
+      ImageId:
+        Ref: AIImageId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      VSwitchId:
+        Ref: AYVSwitchA
+      ZoneId:
+        Ref: ZoneAId
+      AllocatePublicIP:
+        Ref: AllocatePublicIP
+      InternetMaxBandwidthOut:
+        Ref: InternetMaxBandwidthOut
+      KeyPairName:
+        Ref: KeyPairName
+      SystemDiskCategory: cloud_essd
+      SystemDiskSize:
+        Ref: InstanceSystemSize
+      DiskMappings:
+        - Category: cloud_essd
+          Size:
+            Ref: InstanceDataSize
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Sub: ${EnvId}-master-3
+        - Key: EnvId
+          Value:
+            Ref: EnvId
+        - Key: node-role.kubernetes.io/master
+          Value: ""
 
   AYWorkerInstance1:
-      Type: 'ALIYUN::ECS::Instance'
-      Properties:
-        InstanceName:
-          Fn::Sub: ${EnvId}-worker-1
-        InstanceType: 
-          Ref: InstallerInstanceType
-        ImageId: 
-          Ref: AIImageId
-        SecurityGroupId: 
-          Ref: AYSecurityGroup
-        VSwitchId:
-          Ref: AYVSwitchA
-        ZoneId:
-          Ref: ZoneAId
-        AllocatePublicIP:
-          Ref: AllocatePublicIP
-        InternetMaxBandwidthOut:
-          Ref: InternetMaxBandwidthOut
-        KeyPairName:
-          Ref: KeyPairName
-        SystemDiskCategory: cloud_essd
-        SystemDiskSize: 
-          Ref: InstanceSystemSize
-        DiskMappings:
-          - Category: cloud_essd
-            Size: 
-              Ref: InstanceDataSize
-        Tags:
-          - Key: Name
-            Value: 
-              Fn::Sub: ${EnvId}-worker-1
-          - Key: EnvId
-            Value: 
-              Ref: EnvId
-          - Key: node-role.kubernetes.io/master
-            Value: ""
+    Type: "ALIYUN::ECS::Instance"
+    Properties:
+      InstanceName:
+        Fn::Sub: ${EnvId}-worker-1
+      InstanceType:
+        Ref: InstallerInstanceType
+      ImageId:
+        Ref: AIImageId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      VSwitchId:
+        Ref: AYVSwitchA
+      ZoneId:
+        Ref: ZoneAId
+      AllocatePublicIP:
+        Ref: AllocatePublicIP
+      InternetMaxBandwidthOut:
+        Ref: InternetMaxBandwidthOut
+      KeyPairName:
+        Ref: KeyPairName
+      SystemDiskCategory: cloud_essd
+      SystemDiskSize:
+        Ref: InstanceSystemSize
+      DiskMappings:
+        - Category: cloud_essd
+          Size:
+            Ref: InstanceDataSize
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Sub: ${EnvId}-worker-1
+        - Key: EnvId
+          Value:
+            Ref: EnvId
+        - Key: node-role.kubernetes.io/master
+          Value: ""
 
   AYWorkerInstance2:
-      Type: 'ALIYUN::ECS::Instance'
-      Properties:
-        InstanceName: 
-          Fn::Sub: ${EnvId}-worker-2
-        InstanceType: 
-          Ref: InstallerInstanceType
-        ImageId: 
-          Ref: AIImageId
-        SecurityGroupId: 
-          Ref: AYSecurityGroup
-        VSwitchId:
-          Ref: AYVSwitchA
-        ZoneId:
-          Ref: ZoneAId
-        AllocatePublicIP:
-          Ref: AllocatePublicIP
-        InternetMaxBandwidthOut:
-          Ref: InternetMaxBandwidthOut
-        KeyPairName:
-          Ref: KeyPairName
-        SystemDiskCategory: cloud_essd
-        SystemDiskSize: 
-          Ref: InstanceSystemSize
-        DiskMappings:
-          - Category: cloud_essd
-            Size: 
-              Ref: InstanceDataSize
-        Tags:
-          - Key: Name
-            Value: 
-              Fn::Sub: ${EnvId}-worker-2
-          - Key: EnvId
-            Value: 
-              Ref: EnvId
-          - Key: node-role.kubernetes.io/worker
-            Value: ""
+    Type: "ALIYUN::ECS::Instance"
+    Properties:
+      InstanceName:
+        Fn::Sub: ${EnvId}-worker-2
+      InstanceType:
+        Ref: InstallerInstanceType
+      ImageId:
+        Ref: AIImageId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      VSwitchId:
+        Ref: AYVSwitchA
+      ZoneId:
+        Ref: ZoneAId
+      AllocatePublicIP:
+        Ref: AllocatePublicIP
+      InternetMaxBandwidthOut:
+        Ref: InternetMaxBandwidthOut
+      KeyPairName:
+        Ref: KeyPairName
+      SystemDiskCategory: cloud_essd
+      SystemDiskSize:
+        Ref: InstanceSystemSize
+      DiskMappings:
+        - Category: cloud_essd
+          Size:
+            Ref: InstanceDataSize
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Sub: ${EnvId}-worker-2
+        - Key: EnvId
+          Value:
+            Ref: EnvId
+        - Key: node-role.kubernetes.io/worker
+          Value: ""
 
   AYWorkerInstance3:
-      Type: 'ALIYUN::ECS::Instance'
-      Properties:
-        InstanceName:
-          Fn::Sub: ${EnvId}-worker-3
-        InstanceType: 
-          Ref: InstallerInstanceType
-        ImageId: 
-          Ref: AIImageId
-        SecurityGroupId: 
-          Ref: AYSecurityGroup
-        VSwitchId:
-          Ref: AYVSwitchA
-        ZoneId:
-          Ref: ZoneAId
-        AllocatePublicIP:
-          Ref: AllocatePublicIP
-        InternetMaxBandwidthOut:
-          Ref: InternetMaxBandwidthOut
-        KeyPairName:
-          Ref: KeyPairName
-        SystemDiskCategory: cloud_essd
-        SystemDiskSize: 
-          Ref: InstanceSystemSize
-        DiskMappings:
-          - Category: cloud_essd
-            Size: 
-              Ref: InstanceDataSize
-        Tags:
-          - Key: Name
-            Value: 
-              Fn::Sub: ${EnvId}-worker-3
-          - Key: EnvId
-            Value: 
-              Ref: EnvId
-          - Key: node-role.kubernetes.io/worker
-            Value: ""
+    Type: "ALIYUN::ECS::Instance"
+    Properties:
+      InstanceName:
+        Fn::Sub: ${EnvId}-worker-3
+      InstanceType:
+        Ref: InstallerInstanceType
+      ImageId:
+        Ref: AIImageId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      VSwitchId:
+        Ref: AYVSwitchA
+      ZoneId:
+        Ref: ZoneAId
+      AllocatePublicIP:
+        Ref: AllocatePublicIP
+      InternetMaxBandwidthOut:
+        Ref: InternetMaxBandwidthOut
+      KeyPairName:
+        Ref: KeyPairName
+      SystemDiskCategory: cloud_essd
+      SystemDiskSize:
+        Ref: InstanceSystemSize
+      DiskMappings:
+        - Category: cloud_essd
+          Size:
+            Ref: InstanceDataSize
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Sub: ${EnvId}-worker-3
+        - Key: EnvId
+          Value:
+            Ref: EnvId
+        - Key: node-role.kubernetes.io/worker
+          Value: ""
 
+  DNSRecord:
+    Type: ALIYUN::DNS::DomainRecord
+    Properties:
+      DomainName:
+        Ref: DomainName
+      RR: api
+      Type: CNAME
+      Value:
+        Fn::GetAtt:
+          - AYNLB
+          - DNSName
 
 Outputs:
   VPCID:

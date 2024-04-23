@@ -54,6 +54,8 @@ aliyun ros CreateStack --region $AY_REGION \
     --Parameters.5.ParameterValue="$AY_STACK_NAME" \
     --Parameters.6.ParameterKey="AIImageId" \
     --Parameters.6.ParameterValue="$AY_IMAGE_ID" \
+    --Parameters.7.ParameterKey="DomainName" \
+    --Parameters.7.ParameterValue="$AY_BASE_DOMAIN" \
     --TemplateURL $AY_TEMPLATE_URL \
     --read-timeout 60 | tee .ay-stack-create.json
 
