@@ -84,6 +84,8 @@ Parameters:
     Default: L1
   DomainName:
     Type: String
+  ClusterName:
+    Type: String
 Resources:
   AYVPC:
     Type: "ALIYUN::ECS::VPC"
@@ -611,12 +613,39 @@ Resources:
         - Key: node-role.kubernetes.io/worker
           Value: ""
 
-  DNSRecord:
+  AYAPIRecord:
     Type: ALIYUN::DNS::DomainRecord
     Properties:
       DomainName:
         Ref: DomainName
-      RR: api
+      RR: 
+        Fn::Sub: "api.${ClusterName}.${DomainName}"
+      Type: CNAME
+      Value:
+        Fn::GetAtt:
+          - AYNLB
+          - DNSName
+
+  AYAPIINTRecord:
+    Type: ALIYUN::DNS::DomainRecord
+    Properties:
+      DomainName:
+        Ref: DomainName
+      RR: 
+        Fn::Sub: "api-int.${ClusterName}.${DomainName}"
+      Type: CNAME
+      Value:
+        Fn::GetAtt:
+          - AYNLB
+          - DNSName
+
+  AYAPPSRecord:
+    Type: ALIYUN::DNS::DomainRecord
+    Properties:
+      DomainName:
+        Ref: DomainName
+      RR: 
+        Fn::Sub: "*.apps.${ClusterName}.${DomainName}"
       Type: CNAME
       Value:
         Fn::GetAtt:
