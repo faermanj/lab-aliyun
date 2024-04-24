@@ -619,7 +619,7 @@ Resources:
       LoadBalancerId: 
         Ref: AYNLB
       VpcId: 
-        Ref: VpcId
+        Ref: AYVPC
       Protocol: TCP
 
   AYMasterServerGroup:
@@ -628,7 +628,7 @@ Resources:
       LoadBalancerId: 
         Ref: AYNLB
       VpcId: 
-        Ref: VpcId
+        Ref: AYVPC
       Protocol: TCP
 
 
@@ -642,33 +642,7 @@ Resources:
       ServerGroupId: 
         Ref: AYMasterServerGroup
     
-  AYMasterInstance1Group:
-    Type: 'ALIYUN::NLB::ServerGroupServer'
-    Properties:
-      ServerGroupId: 
-        Ref: AYMasterServerGroup
-      ServerId: 
-        Ref: AYMasterInstance1
-      Port: 6443
-      Weight: 100
-  AYMasterInstance2Group:
-    Type: 'ALIYUN::NLB::ServerGroupServer'
-    Properties:
-      ServerGroupId: 
-        Ref: AYMasterServerGroup
-      ServerId: 
-        Ref: AYMasterInstance2
-      Port: 6443
-      Weight: 100
-  AYMasterInstance3Group:
-    Type: 'ALIYUN::NLB::ServerGroupServer'
-    Properties:
-      ServerGroupId: 
-        Ref: AYMasterServerGroup
-      ServerId: 
-        Ref: AYMasterInstance3
-      Port: 6443
-      Weight: 100
+
 
 
   AYAPIRecord:
