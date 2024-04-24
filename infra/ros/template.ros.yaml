@@ -40,9 +40,12 @@ Parameters:
   PublicKeyBody:
     Type: String
   # ECS
-  InstallerInstanceType:
+  MasterInstanceType:
     Type: String
     Default: ecs.g6.2xlarge
+  WorkerInstanceType:
+    Type: String
+    Default: ecs.g6.xlarge
   InstallerSystemDiskSize:
     Type: Number
     Default: 500
@@ -84,9 +87,16 @@ Parameters:
     Default: L1
   DomainName:
     Type: String
+    Default: "alicloud-dev.devcluster.openshift.com"
   ClusterName:
     Type: String
+    Default: "lab-aliyun-cluster"
 Resources:
+#             _                      _    
+#  _ __   ___| |___      _____  _ __| | __
+# | '_ \ / _ \ __\ \ /\ / / _ \| '__| |/ /
+# | | | |  __/ |_ \ V  V / (_) | |  |   < 
+# |_| |_|\___|\__| \_/\_/ \___/|_|  |_|\_\
   AYVPC:
     Type: "ALIYUN::ECS::VPC"
     Properties:
@@ -324,66 +334,71 @@ Resources:
       ZoneId: !Ref ZoneAId
 
   # ECS Instances
-  AYBastionInstance:
-    Type: "ALIYUN::ECS::Instance"
-    Properties:
-      InstanceName: installer
-      InstanceType:
-        Ref: InstallerInstanceType
-      ImageId:
-        Ref: LinuxImageId
-      SecurityGroupId:
-        Ref: AYSecurityGroup
-      VSwitchId:
-        Ref: AYVSwitchA
-      ZoneId:
-        Ref: ZoneAId
-      AllocatePublicIP:
-        Ref: AllocatePublicIP
-      InternetMaxBandwidthOut:
-        Ref: InternetMaxBandwidthOut
-      KeyPairName:
-        Ref: KeyPairName
-      UserData: |
-        #!/bin/bash
-        echo "Initializing installer instance"
-        export AY_LOG=
-        echo "Initializing installer instance with log" | tee /tmp/ay.log.txt
-        echo "DISABLED curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash"
+  # AYBastionInstance:
+  #  Type: "ALIYUN::ECS::Instance"
+  #  Properties:
+  #    InstanceName: installer
+  #    InstanceType:
+  #      Ref: InstallerInstanceType
+  #    ImageId:
+  #      Ref: LinuxImageId
+  #    SecurityGroupId:
+  #      Ref: AYSecurityGroup
+  #    VSwitchId:
+  #      Ref: AYVSwitchA
+  #    ZoneId:
+  #      Ref: ZoneAId
+  #    AllocatePublicIP:
+  #      Ref: AllocatePublicIP
+  #    InternetMaxBandwidthOut:
+  #      Ref: InternetMaxBandwidthOut
+  #    KeyPairName:
+  #      Ref: KeyPairName
+  #    UserData: |
+  #      #!/bin/bash
+  #      echo "Initializing installer instance"
+  #      export AY_LOG=
+  #      echo "Initializing installer instance with log" | tee /tmp/ay.log.txt
+  #      echo "DISABLED curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash"
 
-  AYInstallerInstance:
-    Type: "ALIYUN::ECS::Instance"
-    Properties:
-      InstanceName: template-instance
-      InstanceType:
-        Ref: InstallerInstanceType
-      ImageId:
-        Ref: AIImageId
-      SecurityGroupId:
-        Ref: AYSecurityGroup
-      VSwitchId:
-        Ref: AYVSwitchA
-      ZoneId:
-        Ref: ZoneAId
-      AllocatePublicIP:
-        Ref: AllocatePublicIP
-      InternetMaxBandwidthOut:
-        Ref: InternetMaxBandwidthOut
-      KeyPairName:
-        Ref: KeyPairName
-      SystemDiskCategory: cloud_essd
-      SystemDiskSize:
-        Ref: InstanceSystemSize
-      DiskMappings:
-        - Category: cloud_essd
-          Size:
-            Ref: InstanceDataSize
-      Tags:
-        - Key: EnvId
-          Value:
-            Ref: EnvId
-        - Key: node-role.kubernetes.io/master
-          Value: ""
+#    ___  ___ ___ 
+#  / _ \/ __/ __|
+# |  __/ (__\__ \
+#  \___|\___|___/
+               
+#  AYInstallerInstance:
+#    Type: "ALIYUN::ECS::Instance"
+#    Properties:
+#      InstanceName: template-instance
+#      InstanceType:
+#        Ref: InstallerInstanceType
+#      ImageId:
+#        Ref: AIImageId
+#      SecurityGroupId:
+#        Ref: AYSecurityGroup
+#      VSwitchId:
+#        Ref: AYVSwitchA
+#      ZoneId:
+#        Ref: ZoneAId
+#      AllocatePublicIP:
+#        Ref: AllocatePublicIP
+#      InternetMaxBandwidthOut:
+#        Ref: InternetMaxBandwidthOut
+#      KeyPairName:
+#        Ref: KeyPairName
+#      SystemDiskCategory: cloud_essd
+#      SystemDiskSize:
+#        Ref: InstanceSystemSize
+#      DiskMappings:
+#        - Category: cloud_essd
+#          Size:
+#            Ref: InstanceDataSize
+#      Tags:
+#        - Key: EnvId
+#          Value:
+#            Ref: EnvId
+#        - Key: node-role.kubernetes.io/master
+#          Value: ""
 
   AYMasterInstance1:
     Type: "ALIYUN::ECS::Instance"
@@ -391,7 +406,7 @@ Resources:
       InstanceName:
         Fn::Sub: ${EnvId}-master-1
       InstanceType:
-        Ref: InstallerInstanceType
+        Ref: MasterInstanceType
       ImageId:
         Ref: AIImageId
       SecurityGroupId:
@@ -429,7 +444,7 @@ Resources:
       InstanceName:
         Fn::Sub: ${EnvId}-master-2
       InstanceType:
-        Ref: InstallerInstanceType
+        Ref: MasterInstanceType
       ImageId:
         Ref: AIImageId
       SecurityGroupId:
@@ -467,7 +482,7 @@ Resources:
       InstanceName:
         Fn::Sub: ${EnvId}-master-3
       InstanceType:
-        Ref: InstallerInstanceType
+        Ref: MasterInstanceType
       ImageId:
         Ref: AIImageId
       SecurityGroupId:
@@ -505,7 +520,7 @@ Resources:
       InstanceName:
         Fn::Sub: ${EnvId}-worker-1
       InstanceType:
-        Ref: InstallerInstanceType
+        Ref: WorkerInstanceType
       ImageId:
         Ref: AIImageId
       SecurityGroupId:
@@ -543,7 +558,7 @@ Resources:
       InstanceName:
         Fn::Sub: ${EnvId}-worker-2
       InstanceType:
-        Ref: InstallerInstanceType
+        Ref: WorkerInstanceType
       ImageId:
         Ref: AIImageId
       SecurityGroupId:
@@ -581,7 +596,7 @@ Resources:
       InstanceName:
         Fn::Sub: ${EnvId}-worker-3
       InstanceType:
-        Ref: InstallerInstanceType
+        Ref: WorkerInstanceType
       ImageId:
         Ref: AIImageId
       SecurityGroupId:
@@ -614,23 +629,48 @@ Resources:
           Value: ""
    
   AYWorkerServerGroup:
-    Type: 'ALIYUN::NLB::ServerGroup'
+    Type: ALIYUN::NLB::ServerGroup
     Properties:
-      LoadBalancerId: 
-        Ref: AYNLB
+      ServerGroupName:
+        Fn::Sub: ${EnvId}-workers
       VpcId: 
         Ref: AYVPC
       Protocol: TCP
+      Servers:
+        - ServerType: Ecs
+          ServerId:
+            Ref: AYWorkerInstance1
+          Port: 443
+        - ServerType: Ecs
+          ServerId:
+            Ref: AYWorkerInstance2
+          Port: 443
+        - ServerType: Ecs
+          ServerId:
+            Ref: AYWorkerInstance3
+          Port: 443
 
   AYMasterServerGroup:
-    Type: 'ALIYUN::NLB::ServerGroup'
+    Type: ALIYUN::NLB::ServerGroup
     Properties:
-      LoadBalancerId: 
-        Ref: AYNLB
+      ServerGroupName:
+        Fn::Sub: ${EnvId}-masters
       VpcId: 
         Ref: AYVPC
       Protocol: TCP
-
+      Servers:
+        - ServerType: Ecs
+          ServerId:
+            Ref: AYMasterInstance1
+          Port: 6443
+        - ServerType: Ecs
+          ServerId:
+            Ref: AYMasterInstance2
+          Port: 6443
+        - ServerType: Ecs
+          ServerId:
+            Ref: AYMasterInstance3
+          Port: 6443
 
   NLBListener6443:
     Type: 'ALIYUN::NLB::Listener'
@@ -641,9 +681,17 @@ Resources:
       ListenerPort: 6443
       ServerGroupId: 
         Ref: AYMasterServerGroup
-    
 
 
+  NLBListener443:
+    Type: 'ALIYUN::NLB::Listener'
+    Properties:
+      LoadBalancerId: 
+        Ref: AYNLB
+      ListenerProtocol: TCP
+      ListenerPort: 443
+      ServerGroupId: 
+        Ref: AYWorkerServerGroup
 
   AYAPIRecord:
     Type: ALIYUN::DNS::DomainRecord

@@ -11,6 +11,7 @@ AY_BUCKET_NAME=${AY_BUCKET_NAME:-"$AY_PREFIX-$AY_REGION"}
 
 # AY_CLUSTER_NAME=${AY_CLUSTER_NAME:-"$AY_PREFIX$(date +%Y%m%d%H%M)"}
 AY_CLUSTER_NAME="$AY_PREFIX$(date +%Y%m%d%H%M%S)"
+export AY_CLUSTER_NAME
 
 echo "=== OpenShift LabAY Install Script $VERSION ==="
 echo "pwd: $(pwd)"

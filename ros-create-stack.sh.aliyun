@@ -4,6 +4,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 AY_REGION=${AY_REGION:-"eu-central-1"} 
 AY_BUCKET_NAME=${AY_BUCKET_NAME:-"lab-ay-$AY_REGION"}
+AY_BASE_DOMAIN=${AY_BASE_DOMAIN:-"alicloud-dev.devcluster.openshift.com"}
 
 AY_ZONE_A="eu-central-1a"
 AY_ZONE_B="eu-central-1b"
