@@ -42,10 +42,10 @@ Parameters:
   # ECS
   MasterInstanceType:
     Type: String
-    Default: ecs.g6.2xlarge
+    Default: ecs.g6.3xlarge
   WorkerInstanceType:
     Type: String
-    Default: ecs.g6.xlarge
+    Default: ecs.g6.2xlarge
   InstallerSystemDiskSize:
     Type: Number
     Default: 500
@@ -401,7 +401,7 @@ Resources:
     Properties:
       InstanceName: bootstrap-instance
       InstanceType:
-        Ref: InstallerInstanceType
+        Ref: BootstrapInstanceType
       ImageId:
         Ref: AIImageId
       SecurityGroupId:
