@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 SRC_DIR=$(dirname $SCRIPT_DIR)
@@ -32,7 +32,6 @@ cd $TMP_DIR
 REPO_DIR="$SCRIPT_DIR"
 cd $REPO_DIR
 
-echo "Installing openshift clients"
 
 # OpenShift CLI
 if ! command -v oc &> /dev/null
