@@ -888,14 +888,4 @@ Outputs:
   SecurityGroupID:
     Value:
       Ref: AYSecurityGroup
-  InstallerInstanceID:
-    Value:
-      Ref: AYInstallerInstance
-  InstallerInstancePublicIp:
-    Value:
-      Fn::GetAtt:
-        - AYInstallerInstance
-        - PublicIp
-  InstallerInstanceSSHCmd:
-    Value:
-      Fn::Sub: ssh -i ${KeyPairName}.pem root@${AYInstallerInstance.PublicIp}
+
