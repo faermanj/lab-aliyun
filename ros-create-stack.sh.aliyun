@@ -6,8 +6,8 @@ AY_REGION=${AY_REGION:-"eu-central-1"}
 AY_BUCKET_NAME=${AY_BUCKET_NAME:-"lab-ay-$AY_REGION"}
 AY_BASE_DOMAIN=${AY_BASE_DOMAIN:-"alicloud-dev.devcluster.openshift.com"}
 
-AY_ZONE_A="eu-central-1a"
-AY_ZONE_B="eu-central-1b"
+AY_ZONE_A="${AY_REGION}a"
+AY_ZONE_B="${AY_REGION}b"
 
 export ALIBABA_CLOUD_REGION_ID=$AY_REGION
 
@@ -35,7 +35,7 @@ aliyun oss cp "$DIR/infra/ros/template.ros.yaml" $AY_OBJECT_KEY --region $AY_REG
 aliyun oss set-acl $AY_OBJECT_KEY public-read --region $AY_REGION
 
 AY_TEMPLATE_URL="https://$AY_BUCKET_NAME.oss-$AY_REGION.aliyuncs.com/$AY_OBJECT_NAME"
-AY_STACK_NAME="ay-${USER}-$(date +%s)"
+AY_STACK_NAME="${AY_CLUSTER_NAME}"
 
 AY_SSH_KEY=$(cat ~/.ssh/id_rsa.pub)
 
@@ -59,6 +59,8 @@ aliyun ros CreateStack --region $AY_REGION \
     --Parameters.7.ParameterValue="$AY_BASE_DOMAIN" \
     --Parameters.8.ParameterKey="ClusterName" \
     --Parameters.8.ParameterValue="$AY_CLUSTER_NAME" \
+    --Parameters.9.ParameterKey="KeyPairName" \
+    --Parameters.9.ParameterValue="$SSH_KEY_PAIR_NAME" \
     --TemplateURL $AY_TEMPLATE_URL \
     --read-timeout 60 | tee .ay-stack-create.json
 

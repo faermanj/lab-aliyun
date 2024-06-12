@@ -42,19 +42,13 @@ Parameters:
   # ECS
   MasterInstanceType:
     Type: String
-    Default: ecs.g6.3xlarge
+    Default: ecs.g6.xlarge
   WorkerInstanceType:
     Type: String
-    Default: ecs.g6.2xlarge
+    Default: ecs.g6.large
   InstallerSystemDiskSize:
     Type: Number
-    Default: 500
-  BootstrapInstanceType:
-    Type: String
-    Default: ecs.g6.xlarge
-  BootstrapSystemDiskSize:
-    Type: Number
-    Default: 500
+    Default: 100
   # Imgage Ids on eu-central-1
   # RHEL: m-gw8ei55k4akujv5mqvrv (asks password?)
   # CentOS: centos_7_9_x64_20G_alibase_20240220.vhd (ssh ok)
@@ -64,7 +58,7 @@ Parameters:
     Default: aliyun_3_9_x64_20G_alibase_20231219.vhd
   AllocatePublicIP:
     Type: String
-    Default: true
+    Default: false
   InternetMaxBandwidthOut:
     Type: Number
     Default: 100
@@ -75,13 +69,13 @@ Parameters:
     Type: String
   InstanceSystemSize:
     Type: Number
-    Default: 256
+    Default: 100
   InstanceSystemLevel:
     Type: String
     Default: L1
   InstanceDataSize:
     Type: Number
-    Default: 1024
+    Default: 100
   InstanceDataLevel:
     Type: String
     Default: L1
@@ -359,15 +353,6 @@ Resources:
         Fn::Sub: ${EnvId}-bucket
       AccessControl: public-read #TODO: make private?
 
-  # NAS Instance
-  AYNASInstance:
-    Type: "ALIYUN::NAS::FileSystem"
-    Properties:
-      ProtocolType: "NFS"
-      FileSystemType: "standard"
-      StorageType: "Capacity"
-      ZoneId: !Ref ZoneAId
-
   # ECS Instances
   # AYBastionInstance:
   #  Type: "ALIYUN::ECS::Instance"
@@ -395,40 +380,6 @@ Resources:
   #      export AY_LOG=
   #      echo "Initializing installer instance with log" | tee /tmp/ay.log.txt
   #      echo "DISABLED curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash"
-
-  AYBootstrapInstance:
-    Type: "ALIYUN::ECS::Instance"
-    Properties:
-      InstanceName: bootstrap-instance
-      InstanceType:
-        Ref: BootstrapInstanceType
-      ImageId:
-        Ref: AIImageId
-      SecurityGroupId:
-        Ref: AYSecurityGroup
-      VSwitchId:
-        Ref: AYVSwitchA
-      ZoneId:
-        Ref: ZoneAId
-      AllocatePublicIP:
-        Ref: AllocatePublicIP
-      InternetMaxBandwidthOut:
-        Ref: InternetMaxBandwidthOut
-      KeyPairName:
-        Ref: KeyPairName
-      SystemDiskCategory: cloud_essd
-      SystemDiskSize:
-        Ref: InstanceSystemSize
-      DiskMappings:
-        - Category: cloud_essd
-          Size:
-            Ref: InstanceDataSize
-      Tags:
-        - Key: EnvId
-          Value:
-            Ref: EnvId
-        - Key: node-role.kubernetes.io/master
-          Value: ""
 
   AYMasterInstance1:
     Type: "ALIYUN::ECS::Instance"
@@ -782,98 +733,6 @@ Resources:
         Fn::GetAtt:
           - AYNLB
           - DNSName
-
-  AYBootstrapRecord:
-    Type: "ALIYUN::DNS::DomainRecord"
-    Properties:
-      DomainName:
-        Ref: DomainName
-      RR:
-        Fn::Sub: "bootstrap.${ClusterName}"
-      Type: A
-      Value:
-        Fn::GetAtt:
-          - AYBootstrapInstance
-          - PublicIp
-
-  AYMasterRecord1:
-    Type: "ALIYUN::DNS::DomainRecord"
-    Properties:
-      DomainName:
-        Ref: DomainName
-      RR:
-        Fn::Sub: "master1.${ClusterName}"
-      Type: A
-      Value:
-        Fn::GetAtt:
-          - AYMasterInstance1
-          - PublicIp
-
-  AYMasterRecord2:
-    Type: "ALIYUN::DNS::DomainRecord"
-    Properties:
-      DomainName:
-        Ref: DomainName
-      RR:
-        Fn::Sub: "master2.${ClusterName}"
-      Type: A
-      Value:
-        Fn::GetAtt:
-          - AYMasterInstance2
-          - PublicIp
-
-  AYMasterRecord3:
-    Type: "ALIYUN::DNS::DomainRecord"
-    Properties:
-      DomainName:
-        Ref: DomainName
-      RR:
-        Fn::Sub: "master3.${ClusterName}"
-      Type: A
-      Value:
-        Fn::GetAtt:
-          - AYMasterInstance3
-          - PublicIp
-
-  AYWorkerRecord1:
-    Type: "ALIYUN::DNS::DomainRecord"
-    Properties:
-      DomainName:
-        Ref: DomainName
-      RR:
-        Fn::Sub: "worker1.${ClusterName}"
-      Type: A
-      Value:
-        Fn::GetAtt:
-          - AYWorkerInstance1
-          - PublicIp
-
-  AYWorkerRecord2:
-    Type: "ALIYUN::DNS::DomainRecord"
-    Properties:
-      DomainName:
-        Ref: DomainName
-      RR:
-        Fn::Sub: "worker2.${ClusterName}"
-      Type: A
-      Value:
-        Fn::GetAtt:
-          - AYWorkerInstance2
-          - PublicIp
-
-  AYWorkerRecord3:
-    Type: "ALIYUN::DNS::DomainRecord"
-    Properties:
-      DomainName:
-        Ref: DomainName
-      RR:
-        Fn::Sub: "worker3.${ClusterName}"
-      Type: A
-      Value:
-        Fn::GetAtt:
-          - AYWorkerInstance3
-          - PublicIp
-
 
 Outputs:
   VPCID:
