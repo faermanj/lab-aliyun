@@ -56,7 +56,7 @@ then
 fi
 
 ## Assisted Installer Section ##
-export AY_OCP_VERSION="4.15.14"
+export AY_OCP_VERSION=${AY_OCP_VERSION:-"4.15.14"}
 export AY_MANIFESTS_DIR="$SRC_DIR/.ai/manifests"
 mkdir -p "$AY_MANIFESTS_DIR"
 

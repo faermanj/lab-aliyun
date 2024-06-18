@@ -1,6 +1,7 @@
 #!/bin/bash
 
+source ./setup_env.sh
 source ./cluster-image-build.sh.aliyun
 echo "Waiting for the image to be readable." 
-sleep 60
+sleep 180
 source ./ros-create-stack.sh.aliyun
