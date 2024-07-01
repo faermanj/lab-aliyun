@@ -345,13 +345,20 @@ Resources:
       AllocationId: !Ref AYEIPA
       InstanceId: !Ref AYNatGatewayA
 
-  # Storage Bucket
-  AYBucket:
-    Type: "ALIYUN::OSS::Bucket"
+  AYSnatEntry:
+    DependsOn: AYEIPAAssociation
+    Type: ALIYUN::VPC::SnatEntry
     Properties:
-      BucketName:
-        Fn::Sub: ${EnvId}-bucket
-      AccessControl: public-read #TODO: make private?
+      SourceVSwitchIds:
+        - Ref: AYVSwitchA
+      SnatIp:
+        Fn::GetAtt:
+          - AYEIPA
+          - EipAddress          
+      SnatTableId:
+        Fn::GetAtt:
+          - AYNatGatewayA
+          - SNatTableId
 
   # ECS Instances
   # AYBastionInstance:
