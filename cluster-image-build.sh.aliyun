@@ -1,4 +1,7 @@
 #!/bin/bash
+set -o nounset
+set -o errexit
+set -o pipefail
 set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -7,12 +10,21 @@ SRC_DIR=$(dirname $SCRIPT_DIR)
 VERSION="0.0.1"
 AY_REGION=${AY_REGION:-"eu-central-1"} 
 AY_PREFIX=${AY_PREFIX:-"labay"}
-AY_BUCKET_NAME=${AY_BUCKET_NAME:-"$AY_PREFIX-$AY_REGION"}
 AY_BASE_DOMAIN=${AY_BASE_DOMAIN:-"alicloud-dev.devcluster.openshift.com"}
 
-# AY_CLUSTER_NAME=${AY_CLUSTER_NAME:-"$AY_PREFIX$(date +%Y%m%d%H%M)"}
 AY_CLUSTER_NAME="$AY_PREFIX$(date +%Y%m%d%H%M%S)"
 export AY_CLUSTER_NAME
+
+AY_BUCKET_NAME=${AY_BUCKET_NAME:-"$AY_CLUSTER_NAME-bucket"}
+export AY_BUCKET_NAME
+
+SSH_PUBLIC_KEY_FILE=${SSH_PUBLIC_KEY_FILE:-"~/.ssh/id_rsa.pub"}
+if [ -f "${SSH_PUBLIC_KEY_FILE}" ]; then
+    AY_SSH_KEY=$(cat "${SSH_PUBLIC_KEY_FILE}")
+    export AY_SSH_KEY
+else
+    echo "ERROR: failed to find the ssh public key file '${SSH_PUBLIC_KEY_FILE}', abort" && exit 1
+fi
 
 echo "=== OpenShift LabAY Install Script $VERSION ==="
 echo "pwd: $(pwd)"
@@ -60,10 +72,12 @@ export AY_OCP_VERSION=${AY_OCP_VERSION:-"4.15.14"}
 export AY_MANIFESTS_DIR="$SRC_DIR/.ai/manifests"
 mkdir -p "$AY_MANIFESTS_DIR"
 
-aicli create cluster "$AY_CLUSTER_NAME" \
-    -P openshift_version="$AY_OCP_VERSION" \
-    -P base_dns_domain="$AY_BASE_DOMAIN" 
-
+cmd="aicli create cluster ${AY_CLUSTER_NAME} -P openshift_version=${AY_OCP_VERSION} -P base_dns_domain=${AY_BASE_DOMAIN} -P ssh_public_key=\"${AY_SSH_KEY}\""
+if [[ "${CREATE_SNO_CLUSTER}" == "true" ]]; then
+    cmd="${cmd} -P sno=true"
+fi
+echo "Running Command: '${cmd}'"
+eval "${cmd}"
 sleep 10 
 
 # check if iso does not exist

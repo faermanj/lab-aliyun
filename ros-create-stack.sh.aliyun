@@ -6,9 +6,6 @@ AY_REGION=${AY_REGION:-"eu-central-1"}
 AY_BUCKET_NAME=${AY_BUCKET_NAME:-"lab-ay-$AY_REGION"}
 AY_BASE_DOMAIN=${AY_BASE_DOMAIN:-"alicloud-dev.devcluster.openshift.com"}
 
-AY_ZONE_A="${AY_REGION}a"
-AY_ZONE_B="${AY_REGION}b"
-
 export ALIBABA_CLOUD_REGION_ID=$AY_REGION
 
 # Check if the bucket exists
@@ -37,30 +34,36 @@ aliyun oss set-acl $AY_OBJECT_KEY public-read --region $AY_REGION
 AY_TEMPLATE_URL="https://$AY_BUCKET_NAME.oss-$AY_REGION.aliyuncs.com/$AY_OBJECT_NAME"
 AY_STACK_NAME="${AY_CLUSTER_NAME}"
 
-AY_SSH_KEY=$(cat ~/.ssh/id_rsa.pub)
-
 echo "**** Creating Stack $AY_STACK_NAME with template $AY_TEMPLATE_URL"
 
 aliyun ros CreateStack --region $AY_REGION \
     --StackName $AY_STACK_NAME \
     --Parameters.1.ParameterKey="RegionId" \
     --Parameters.1.ParameterValue="$AY_REGION" \
-    --Parameters.2.ParameterKey="ZoneAId" \
-    --Parameters.2.ParameterValue="$AY_ZONE_A" \
-    --Parameters.3.ParameterKey="ZoneBId" \
-    --Parameters.3.ParameterValue="$AY_ZONE_B" \
-    --Parameters.4.ParameterKey="PublicKeyBody" \
-    --Parameters.4.ParameterValue="$AY_SSH_KEY" \
-    --Parameters.5.ParameterKey="EnvId" \
-    --Parameters.5.ParameterValue="$AY_STACK_NAME" \
-    --Parameters.6.ParameterKey="AIImageId" \
-    --Parameters.6.ParameterValue="$AY_IMAGE_ID" \
-    --Parameters.7.ParameterKey="DomainName" \
-    --Parameters.7.ParameterValue="$AY_BASE_DOMAIN" \
-    --Parameters.8.ParameterKey="ClusterName" \
-    --Parameters.8.ParameterValue="$AY_CLUSTER_NAME" \
-    --Parameters.9.ParameterKey="KeyPairName" \
-    --Parameters.9.ParameterValue="$SSH_KEY_PAIR_NAME" \
+    --Parameters.2.ParameterKey="SSHPublicKeyBody" \
+    --Parameters.2.ParameterValue="\"${AY_SSH_KEY}\"" \
+    --Parameters.3.ParameterKey="EnvId" \
+    --Parameters.3.ParameterValue="$AY_STACK_NAME" \
+    --Parameters.4.ParameterKey="AIImageId" \
+    --Parameters.4.ParameterValue="$AY_IMAGE_ID" \
+    --Parameters.5.ParameterKey="DomainName" \
+    --Parameters.5.ParameterValue="$AY_BASE_DOMAIN" \
+    --Parameters.6.ParameterKey="ClusterName" \
+    --Parameters.6.ParameterValue="$AY_CLUSTER_NAME" \
+    --Parameters.7.ParameterKey="CreateSnoCluster" \
+    --Parameters.7.ParameterValue="${CREATE_SNO_CLUSTER:-false}" \
+    --Parameters.8.ParameterKey="CreateCompactCluster" \
+    --Parameters.8.ParameterValue="${CREATE_COMPACT_CLUSTER:-false}" \
+    --Parameters.9.ParameterKey="BationHostFlag" \
+    --Parameters.9.ParameterValue="${CREATE_BASTION_HOST:-false}" \
+    --Parameters.10.ParameterKey="BastionHostImageId" \
+    --Parameters.10.ParameterValue="${BASTION_HOST_IMAGE_ID:-'m-0xi1wndcxhwnxavcodyj'}" \
+    --Parameters.11.ParameterKey="BastionHostSSHKeyPair" \
+    --Parameters.11.ParameterValue="${BASTION_HOST_SSH_KEY_PAIR:-'openshift-qe'}" \
+    --Parameters.12.ParameterKey="MasterInstanceType" \
+    --Parameters.12.ParameterValue="${CONTROL_PLANE_INSTANCE_TYPE:-'ecs.g6.xlarge'}" \
+    --Parameters.13.ParameterKey="WorkerInstanceType" \
+    --Parameters.13.ParameterValue="${COMPUTE_INSTANCE_TYPE:-'ecs.g6.large'}" \
     --TemplateURL $AY_TEMPLATE_URL \
     --read-timeout 60 | tee .ay-stack-create.json
 

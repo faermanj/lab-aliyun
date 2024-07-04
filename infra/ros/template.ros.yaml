@@ -8,6 +8,14 @@ Parameters:
   EnvId:
     Type: String
     Default: lab-ay1
+  CreateSnoCluster:
+    Description: "Whether a Single-Node cluster"
+    Type: Boolean
+    Default: false
+  CreateCompactCluster:
+    Description: "Whether a 3-Node compact cluster"
+    Type: Boolean
+    Default: false
   # Networking
   VpcCidrBlock:
     Type: String
@@ -30,14 +38,9 @@ Parameters:
   SecurityGroupName:
     Type: String
     Default: ay-cluster-sg
-  ZoneAId:
-    Type: String
-    Default: eu-central-1a
-  ZoneBId:
-    Type: String
-    Default: eu-central-1b
   # Security
-  PublicKeyBody:
+  SSHPublicKeyBody:
+    Description: "The file content of the SSH public key file"
     Type: String
   # ECS
   MasterInstanceType:
@@ -46,51 +49,58 @@ Parameters:
   WorkerInstanceType:
     Type: String
     Default: ecs.g6.large
-  InstallerSystemDiskSize:
-    Type: Number
-    Default: 100
-  # Imgage Ids on eu-central-1
-  # RHEL: m-gw8ei55k4akujv5mqvrv (asks password?)
-  # CentOS: centos_7_9_x64_20G_alibase_20240220.vhd (ssh ok)
-  # Alibaba Cloud Linux: aliyun_3_9_x64_20G_alibase_20231219.vhd
-  LinuxImageId:
-    Type: String
-    Default: aliyun_3_9_x64_20G_alibase_20231219.vhd
-  AllocatePublicIP:
-    Type: String
-    Default: false
   InternetMaxBandwidthOut:
     Type: Number
     Default: 100
-  KeyPairName:
-    Type: String
-    Default: jufaerma-eu-central-1
   AIImageId:
     Type: String
   InstanceSystemSize:
     Type: Number
     Default: 100
-  InstanceSystemLevel:
-    Type: String
-    Default: L1
   InstanceDataSize:
     Type: Number
     Default: 100
-  InstanceDataLevel:
-    Type: String
-    Default: L1
   DomainName:
     Type: String
     Default: "alicloud-dev.devcluster.openshift.com"
   ClusterName:
     Type: String
     Default: "lab-aliyun-cluster"
+  BationHostFlag:
+    Description: "Whether to create a bastion host"
+    Type: Boolean
+    Default: false
+  BastionHostImageId:
+    Description: "The image ID of the bastion host"
+    Type: String
+  BastionHostSSHKeyPair:
+    Description: "The SSH key pair to be used by the bastion host"
+    Type: String
+
+Conditions:
+  IsSno: 
+    !Equals
+      - true
+      - !Ref CreateSnoCluster
+  IsCompact: 
+    !Equals
+      - true
+      - !Ref CreateCompactCluster
+  CreateWorkerInstances:
+    !And
+      - !Not IsSno
+      - !Not IsCompact
+  CreateBationHost:
+    !Equals
+      - true
+      - !Ref BationHostFlag
+
 Resources:
-#             _                      _    
-#  _ __   ___| |___      _____  _ __| | __
-# | '_ \ / _ \ __\ \ /\ / / _ \| '__| |/ /
-# | | | |  __/ |_ \ V  V / (_) | |  |   < 
-# |_| |_|\___|\__| \_/\_/ \___/|_|  |_|\_\
+  #             _                      _    
+  #  _ __   ___| |___      _____  _ __| | __
+  # | '_ \ / _ \ __\ \ /\ / / _ \| '__| |/ /
+  # | | | |  __/ |_ \ V  V / (_) | |  |   < 
+  # |_| |_|\___|\__| \_/\_/ \___/|_|  |_|\_\
   AYVPC:
     Type: "ALIYUN::ECS::VPC"
     Properties:
@@ -107,7 +117,10 @@ Resources:
       VpcId:
         Ref: AYVPC
       ZoneId:
-        Ref: ZoneAId
+        !Select
+          - '0'
+          - !GetAZs
+              Ref: RegionId
       CidrBlock:
         Ref: VSwitchCidrBlockA
       VSwitchName:
@@ -119,7 +132,10 @@ Resources:
       VpcId:
         Ref: AYVPC
       ZoneId:
-        Ref: ZoneBId
+        !Select
+          - '1'
+          - !GetAZs
+              Ref: RegionId
       CidrBlock:
         Ref: VSwitchCidrBlockB
       VSwitchName:
@@ -158,7 +174,6 @@ Resources:
       PortRange: "22/22"
       SourceCidrIp: "0.0.0.0/0"
 
-
   AYSecurityGroupIngressTCP1936:
     Type: "ALIYUN::ECS::SecurityGroupIngress"
     Properties:
@@ -169,7 +184,6 @@ Resources:
       IpProtocol: tcp
       PortRange: "1936/1936"
       SourceCidrIp: "0.0.0.0/0"
-
 
   AYSecurityGroupIngressTCP9000_9999:
     Type: "ALIYUN::ECS::SecurityGroupIngress"
@@ -316,15 +330,48 @@ Resources:
       VpcId:
         Ref: AYVPC
       LoadBalancerName: ay-cluster-nlb
+      CrossZoneEnabled: true
       ZoneMappings:
         - VSwitchId:
             Ref: AYVSwitchA
           ZoneId:
-            Ref: ZoneAId
+            !Select
+              - '0'
+              - !GetAZs
+                  Ref: RegionId
         - VSwitchId:
             Ref: AYVSwitchB
           ZoneId:
-            Ref: ZoneBId
+            !Select
+              - '1'
+              - !GetAZs
+                  Ref: RegionId
+
+  AYNLBInternal:
+    Type: "ALIYUN::NLB::LoadBalancer"
+    Properties:
+      AddressType: "Intranet"
+      RegionId:
+        Ref: RegionId
+      VpcId:
+        Ref: AYVPC
+      LoadBalancerName: ay-cluster-nlb-internal
+      CrossZoneEnabled: true
+      ZoneMappings:
+        - VSwitchId:
+            Ref: AYVSwitchA
+          ZoneId:
+            !Select
+              - '0'
+              - !GetAZs
+                  Ref: RegionId
+        - VSwitchId:
+            Ref: AYVSwitchB
+          ZoneId:
+            !Select
+              - '1'
+              - !GetAZs
+                  Ref: RegionId
 
   # LISTENERS
   AYEIPA:
@@ -345,63 +392,114 @@ Resources:
       AllocationId: !Ref AYEIPA
       InstanceId: !Ref AYNatGatewayA
 
-  # Storage Bucket
-  AYBucket:
-    Type: "ALIYUN::OSS::Bucket"
+  AYSnatEntryA:
+    DependsOn: AYEIPAAssociation
+    Type: ALIYUN::VPC::SnatEntry
     Properties:
-      BucketName:
-        Fn::Sub: ${EnvId}-bucket
-      AccessControl: public-read #TODO: make private?
+      SourceVSwitchIds:
+        - Ref: AYVSwitchA
+      SnatIp:
+        Fn::GetAtt:
+          - AYEIPA
+          - EipAddress          
+      SnatTableId:
+        Fn::GetAtt:
+          - AYNatGatewayA
+          - SNatTableId
+
+  AYSnatEntryB:
+    DependsOn: AYEIPAAssociation
+    Type: ALIYUN::VPC::SnatEntry
+    Properties:
+      SourceVSwitchIds:
+        - Ref: AYVSwitchB
+      SnatIp:
+        Fn::GetAtt:
+          - AYEIPA
+          - EipAddress          
+      SnatTableId:
+        Fn::GetAtt:
+          - AYNatGatewayA
+          - SNatTableId
 
   # ECS Instances
-  # AYBastionInstance:
-  #  Type: "ALIYUN::ECS::Instance"
-  #  Properties:
-  #    InstanceName: installer
-  #    InstanceType:
-  #      Ref: InstallerInstanceType
-  #    ImageId:
-  #      Ref: LinuxImageId
-  #    SecurityGroupId:
-  #      Ref: AYSecurityGroup
-  #    VSwitchId:
-  #      Ref: AYVSwitchA
-  #    ZoneId:
-  #      Ref: ZoneAId
-  #    AllocatePublicIP:
-  #      Ref: AllocatePublicIP
-  #    InternetMaxBandwidthOut:
-  #      Ref: InternetMaxBandwidthOut
-  #    KeyPairName:
-  #      Ref: KeyPairName
-  #    UserData: |
-  #      #!/bin/bash
-  #      echo "Initializing installer instance"
-  #      export AY_LOG=
-  #      echo "Initializing installer instance with log" | tee /tmp/ay.log.txt
-  #      echo "DISABLED curl -sSL https://raw.githubusercontent.com/faermanj/lab-aliyun/main/ecs-init-installer.sh | bash"
+  AYSSHKeyPair:
+    Type: ALIYUN::ECS::SSHKeyPair
+    Properties:
+      KeyPairName:
+        Fn::Sub: ${EnvId}-ssh-key-pair
+      PublicKeyBody:
+        Ref: SSHPublicKeyBody
 
-  AYMasterInstance1:
+  AYBastionInstance:
+    Count:
+      !If
+        - CreateBationHost
+        - 1
+        - 0
     Type: "ALIYUN::ECS::Instance"
     Properties:
+      InstanceName: 
+        Fn::Sub: ${EnvId}-bastion-host
+      HostName:
+        Fn::Sub: ${EnvId}-bastion-host
+      InstanceType:
+        Ref: WorkerInstanceType
+      ImageId:
+        Ref: BastionHostImageId
+      SecurityGroupId:
+        Ref: AYSecurityGroup
+      VSwitchId:
+        Ref: AYVSwitchA
+      ZoneId:
+        !Select
+          - '0'
+          - !GetAZs
+              Ref: RegionId
+      AllocatePublicIP: true
+      InternetMaxBandwidthOut:
+        Ref: InternetMaxBandwidthOut
+      KeyPairName:
+        Ref: BastionHostSSHKeyPair
+
+  AYMasterInstances:
+    Type: "ALIYUN::ECS::Instance"
+    Count: 
+      !If
+        - IsSno
+        - 1
+        - 3
+    Properties:
       InstanceName:
-        Fn::Sub: ${EnvId}-master-1
+        Fn::Sub: ${EnvId}-master-${ALIYUN::Index}
       InstanceType:
         Ref: MasterInstanceType
       ImageId:
         Ref: AIImageId
       SecurityGroupId:
         Ref: AYSecurityGroup
-      VSwitchId:
-        Ref: AYVSwitchA
-      ZoneId:
-        Ref: ZoneAId
-      AllocatePublicIP:
-        Ref: AllocatePublicIP
+      VSwitchId: 
+        !Select
+          - !Calculate
+              - "{0}%2"
+              - 0
+              - - !Ref ALIYUN::Index
+          - [!Ref AYVSwitchA, !Ref AYVSwitchB]
+      ZoneId: 
+        !Select
+          - !Calculate
+              - "{0}%2"
+              - 0
+              - - !Ref ALIYUN::Index
+          - !GetAZs
+              Ref: RegionId
+      AllocatePublicIP: false
       InternetMaxBandwidthOut:
         Ref: InternetMaxBandwidthOut
       KeyPairName:
-        Ref: KeyPairName
+        Fn::GetAtt:
+          - AYSSHKeyPair
+          - KeyPairName
       SystemDiskCategory: cloud_essd
       SystemDiskSize:
         Ref: InstanceSystemSize
@@ -412,110 +510,51 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Sub: ${EnvId}-master-1
+            Fn::Sub: ${EnvId}-master-${ALIYUN::Index}
         - Key: EnvId
           Value:
             Ref: EnvId
         - Key: node-role.kubernetes.io/master
           Value: ""
 
-  AYMasterInstance2:
+  AYWorkerInstances:
     Type: "ALIYUN::ECS::Instance"
+    Count: 
+      !If
+        - CreateWorkerInstances
+        - 3
+        - 0
     Properties:
       InstanceName:
-        Fn::Sub: ${EnvId}-master-2
-      InstanceType:
-        Ref: MasterInstanceType
-      ImageId:
-        Ref: AIImageId
-      SecurityGroupId:
-        Ref: AYSecurityGroup
-      VSwitchId:
-        Ref: AYVSwitchA
-      ZoneId:
-        Ref: ZoneAId
-      AllocatePublicIP:
-        Ref: AllocatePublicIP
-      InternetMaxBandwidthOut:
-        Ref: InternetMaxBandwidthOut
-      KeyPairName:
-        Ref: KeyPairName
-      SystemDiskCategory: cloud_essd
-      SystemDiskSize:
-        Ref: InstanceSystemSize
-      DiskMappings:
-        - Category: cloud_essd
-          Size:
-            Ref: InstanceDataSize
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: ${EnvId}-master-2
-        - Key: EnvId
-          Value:
-            Ref: EnvId
-        - Key: node-role.kubernetes.io/master
-          Value: ""
-
-  AYMasterInstance3:
-    Type: "ALIYUN::ECS::Instance"
-    Properties:
-      InstanceName:
-        Fn::Sub: ${EnvId}-master-3
-      InstanceType:
-        Ref: MasterInstanceType
-      ImageId:
-        Ref: AIImageId
-      SecurityGroupId:
-        Ref: AYSecurityGroup
-      VSwitchId:
-        Ref: AYVSwitchA
-      ZoneId:
-        Ref: ZoneAId
-      AllocatePublicIP:
-        Ref: AllocatePublicIP
-      InternetMaxBandwidthOut:
-        Ref: InternetMaxBandwidthOut
-      KeyPairName:
-        Ref: KeyPairName
-      SystemDiskCategory: cloud_essd
-      SystemDiskSize:
-        Ref: InstanceSystemSize
-      DiskMappings:
-        - Category: cloud_essd
-          Size:
-            Ref: InstanceDataSize
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: ${EnvId}-master-3
-        - Key: EnvId
-          Value:
-            Ref: EnvId
-        - Key: node-role.kubernetes.io/master
-          Value: ""
-
-  AYWorkerInstance1:
-    Type: "ALIYUN::ECS::Instance"
-    Properties:
-      InstanceName:
-        Fn::Sub: ${EnvId}-worker-1
+        Fn::Sub: ${EnvId}-worker-${ALIYUN::Index}
       InstanceType:
         Ref: WorkerInstanceType
       ImageId:
         Ref: AIImageId
       SecurityGroupId:
         Ref: AYSecurityGroup
-      VSwitchId:
-        Ref: AYVSwitchA
-      ZoneId:
-        Ref: ZoneAId
-      AllocatePublicIP:
-        Ref: AllocatePublicIP
+      VSwitchId: 
+        !Select
+          - !Calculate
+              - "{0}%2"
+              - 0
+              - - !Ref ALIYUN::Index
+          - [!Ref AYVSwitchA, !Ref AYVSwitchB]
+      ZoneId: 
+        !Select
+          - !Calculate
+              - "{0}%2"
+              - 0
+              - - !Ref ALIYUN::Index
+          - !GetAZs
+              Ref: RegionId
+      AllocatePublicIP: false
       InternetMaxBandwidthOut:
         Ref: InternetMaxBandwidthOut
       KeyPairName:
-        Ref: KeyPairName
+        Fn::GetAtt:
+          - AYSSHKeyPair
+          - KeyPairName
       SystemDiskCategory: cloud_essd
       SystemDiskSize:
         Ref: InstanceSystemSize
@@ -526,87 +565,11 @@ Resources:
       Tags:
         - Key: Name
           Value:
-            Fn::Sub: ${EnvId}-worker-1
+            Fn::Sub: ${EnvId}-worker-${ALIYUN::Index}
         - Key: EnvId
           Value:
             Ref: EnvId
         - Key: node-role.kubernetes.io/master
-          Value: ""
-
-  AYWorkerInstance2:
-    Type: "ALIYUN::ECS::Instance"
-    Properties:
-      InstanceName:
-        Fn::Sub: ${EnvId}-worker-2
-      InstanceType:
-        Ref: WorkerInstanceType
-      ImageId:
-        Ref: AIImageId
-      SecurityGroupId:
-        Ref: AYSecurityGroup
-      VSwitchId:
-        Ref: AYVSwitchA
-      ZoneId:
-        Ref: ZoneAId
-      AllocatePublicIP:
-        Ref: AllocatePublicIP
-      InternetMaxBandwidthOut:
-        Ref: InternetMaxBandwidthOut
-      KeyPairName:
-        Ref: KeyPairName
-      SystemDiskCategory: cloud_essd
-      SystemDiskSize:
-        Ref: InstanceSystemSize
-      DiskMappings:
-        - Category: cloud_essd
-          Size:
-            Ref: InstanceDataSize
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: ${EnvId}-worker-2
-        - Key: EnvId
-          Value:
-            Ref: EnvId
-        - Key: node-role.kubernetes.io/worker
-          Value: ""
-
-  AYWorkerInstance3:
-    Type: "ALIYUN::ECS::Instance"
-    Properties:
-      InstanceName:
-        Fn::Sub: ${EnvId}-worker-3
-      InstanceType:
-        Ref: WorkerInstanceType
-      ImageId:
-        Ref: AIImageId
-      SecurityGroupId:
-        Ref: AYSecurityGroup
-      VSwitchId:
-        Ref: AYVSwitchA
-      ZoneId:
-        Ref: ZoneAId
-      AllocatePublicIP:
-        Ref: AllocatePublicIP
-      InternetMaxBandwidthOut:
-        Ref: InternetMaxBandwidthOut
-      KeyPairName:
-        Ref: KeyPairName
-      SystemDiskCategory: cloud_essd
-      SystemDiskSize:
-        Ref: InstanceSystemSize
-      DiskMappings:
-        - Category: cloud_essd
-          Size:
-            Ref: InstanceDataSize
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Sub: ${EnvId}-worker-3
-        - Key: EnvId
-          Value:
-            Ref: EnvId
-        - Key: node-role.kubernetes.io/worker
           Value: ""
    
   AYWorkerServerGroup:
@@ -618,20 +581,42 @@ Resources:
         Ref: AYVPC
       Protocol: TCP
       Servers:
-        - ServerType: Ecs
-          ServerId:
-            Ref: AYWorkerInstance1
-          Port: 443
-        - ServerType: Ecs
-          ServerId:
-            Ref: AYWorkerInstance2
-          Port: 443
-        - ServerType: Ecs
-          ServerId:
-            Ref: AYWorkerInstance3
-          Port: 443
+        !If
+          - CreateWorkerInstances
+          - - ServerType: Ecs
+              ServerId:
+                Ref: AYWorkerInstances[0]
+              Port: 443
+            - ServerType: Ecs
+              ServerId:
+                Ref: AYWorkerInstances[1]
+              Port: 443
+            - ServerType: Ecs
+              ServerId:
+                Ref: AYWorkerInstances[2]
+              Port: 443
+          - !If
+              - IsSno
+              - - ServerType: Ecs
+                  ServerId:
+                    Ref: AYMasterInstances[0]
+                  Port: 443
+              - - ServerType: Ecs
+                  ServerId:
+                    Ref: AYMasterInstances[0]
+                  Port: 443
+                - ServerType: Ecs
+                  ServerId:
+                    Ref: AYMasterInstances[1]
+                  Port: 443
+                - ServerType: Ecs
+                  ServerId:
+                    Ref: AYMasterInstances[2]
+                  Port: 443
 
   AYMasterServerGroup:
+    DependsOn: 
+      - AYMasterInstances
     Type: ALIYUN::NLB::ServerGroup
     Properties:
       ServerGroupName:
@@ -640,18 +625,44 @@ Resources:
         Ref: AYVPC
       Protocol: TCP
       Servers:
-        - ServerType: Ecs
-          ServerId:
-            Ref: AYMasterInstance1
-          Port: 6443
-        - ServerType: Ecs
-          ServerId:
-            Ref: AYMasterInstance2
-          Port: 6443
-        - ServerType: Ecs
-          ServerId:
-            Ref: AYMasterInstance3
-          Port: 6443
+        !If
+          - IsSno
+          - - ServerType: Ecs
+              ServerId:
+                Ref: AYMasterInstances[0]
+              Port: 6443
+          - - ServerType: Ecs
+              ServerId:
+                Ref: AYMasterInstances[0]
+              Port: 6443
+            - ServerType: Ecs
+              ServerId:
+                Ref: AYMasterInstances[1]
+              Port: 6443
+            - ServerType: Ecs
+              ServerId:
+                Ref: AYMasterInstances[2]
+              Port: 6443
+
+  NLBInternalListener6443:
+    Type: 'ALIYUN::NLB::Listener'
+    Properties:
+      LoadBalancerId: 
+        Ref: AYNLBInternal
+      ListenerProtocol: TCP
+      ListenerPort: 6443
+      ServerGroupId: 
+        Ref: AYMasterServerGroup
+
+  NLBInternalListener22623:
+    Type: 'ALIYUN::NLB::Listener'
+    Properties:
+      LoadBalancerId: 
+        Ref: AYNLBInternal
+      ListenerProtocol: TCP
+      ListenerPort: 22623
+      ServerGroupId: 
+        Ref: AYMasterServerGroup
 
   NLBListener6443:
     Type: 'ALIYUN::NLB::Listener'
@@ -660,16 +671,6 @@ Resources:
         Ref: AYNLB
       ListenerProtocol: TCP
       ListenerPort: 6443
-      ServerGroupId: 
-        Ref: AYMasterServerGroup
-
-  NLBListener22623:
-    Type: 'ALIYUN::NLB::Listener'
-    Properties:
-      LoadBalancerId: 
-        Ref: AYNLB
-      ListenerProtocol: TCP
-      ListenerPort: 22623
       ServerGroupId: 
         Ref: AYMasterServerGroup
 
@@ -682,7 +683,6 @@ Resources:
       ListenerPort: 80
       ServerGroupId: 
         Ref: AYWorkerServerGroup
-    
 
   NLBListener443:
     Type: 'ALIYUN::NLB::Listener'
@@ -694,6 +694,66 @@ Resources:
       ServerGroupId: 
         Ref: AYWorkerServerGroup
 
+  AYPrivateZone:
+    Type: ALIYUN::PVTZ::Zone
+    Properties:
+      ZoneName: 
+        Fn::Sub: ${ClusterName}.${DomainName}
+
+  AYPrivateZoneVpcBinder:
+    Type: ALIYUN::PVTZ::ZoneVpcBinder
+    Properties:
+      Vpcs:
+        - VpcId:
+            Ref: AYVPC
+          RegionId:
+            Ref: RegionId
+      ZoneId:
+        Fn::GetAtt:
+          - AYPrivateZone
+          - ZoneId
+
+  AYPrivateZoneAPIRecord:
+    Type: ALIYUN::PVTZ::ZoneRecord
+    Properties:
+      Rr: 'api'
+      Value:
+        Fn::GetAtt:
+          - AYNLBInternal
+          - DNSName
+      ZoneId:
+        Fn::GetAtt:
+          - AYPrivateZone
+          - ZoneId
+      Type: CNAME
+
+  AYPrivateZoneAPIINTRecord:
+    Type: ALIYUN::PVTZ::ZoneRecord
+    Properties:
+      Rr: 'api-int'
+      Value:
+        Fn::GetAtt:
+          - AYNLBInternal
+          - DNSName
+      ZoneId:
+        Fn::GetAtt:
+          - AYPrivateZone
+          - ZoneId
+      Type: CNAME
+
+  AYPrivateZoneAPPSRecord:
+    Type: ALIYUN::PVTZ::ZoneRecord
+    Properties:
+      Rr: '*.apps'
+      Value:
+        Fn::GetAtt:
+          - AYNLBInternal
+          - DNSName
+      ZoneId:
+        Fn::GetAtt:
+          - AYPrivateZone
+          - ZoneId
+      Type: CNAME
 
   AYAPIRecord:
     Type: ALIYUN::DNS::DomainRecord
@@ -702,19 +762,6 @@ Resources:
         Ref: DomainName
       RR: 
         Fn::Sub: "api.${ClusterName}"
-      Type: CNAME
-      Value:
-        Fn::GetAtt:
-          - AYNLB
-          - DNSName
-
-  AYAPIINTRecord:
-    Type: ALIYUN::DNS::DomainRecord
-    Properties:
-      DomainName:
-        Ref: DomainName
-      RR: 
-        Fn::Sub: "api-int.${ClusterName}"
       Type: CNAME
       Value:
         Fn::GetAtt:
