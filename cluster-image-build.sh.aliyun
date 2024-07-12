@@ -113,10 +113,12 @@ aliyun ecs ImportImage \
     --ImageName $AY_IMAGE_NAME \
     --Architecture x86_64 \
     --Platform CoreOS \
+    --BootMode UEFI \
     --Description "OpenShift Image for ${AY_CLUSTER_NAME}" \
     --DiskDeviceMapping.1.OSSBucket $AY_BUCKET_NAME \
     --DiskDeviceMapping.1.OSSObject $AY_OBJECT_NAME \
     --DiskDeviceMapping.1.DiskImageSize $AY_OBJECT_SIZE \
+    --DiskDeviceMapping.1.Format QCOW2 \
     | tee .import-image.log.json
 
 export AY_IMAGE_ID=$(jq -r '.ImageId' .import-image.log.json)

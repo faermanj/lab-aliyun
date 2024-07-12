@@ -321,7 +321,7 @@ Resources:
       PortRange: "22/22"
       SourceCidrIp: "0.0.0.0/0"
 
-  AYNLB:
+  AYNLBExternal:
     Type: "ALIYUN::NLB::LoadBalancer"
     Properties:
       AddressType: "Internet"
@@ -329,7 +329,7 @@ Resources:
         Ref: RegionId
       VpcId:
         Ref: AYVPC
-      LoadBalancerName: ay-cluster-nlb
+      LoadBalancerName: ay-cluster-nlb-external
       CrossZoneEnabled: true
       ZoneMappings:
         - VSwitchId:
@@ -572,11 +572,11 @@ Resources:
         - Key: node-role.kubernetes.io/master
           Value: ""
    
-  AYWorkerServerGroup:
+  AYWorkerServerGroup443:
     Type: ALIYUN::NLB::ServerGroup
     Properties:
       ServerGroupName:
-        Fn::Sub: ${EnvId}-workers
+        Fn::Sub: ${EnvId}-workers-tcp443
       VpcId: 
         Ref: AYVPC
       Protocol: TCP
@@ -614,13 +614,55 @@ Resources:
                     Ref: AYMasterInstances[2]
                   Port: 443
 
-  AYMasterServerGroup:
+  AYWorkerServerGroup80:
+    Type: ALIYUN::NLB::ServerGroup
+    Properties:
+      ServerGroupName:
+        Fn::Sub: ${EnvId}-workers-tcp80
+      VpcId: 
+        Ref: AYVPC
+      Protocol: TCP
+      Servers:
+        !If
+          - CreateWorkerInstances
+          - - ServerType: Ecs
+              ServerId:
+                Ref: AYWorkerInstances[0]
+              Port: 80
+            - ServerType: Ecs
+              ServerId:
+                Ref: AYWorkerInstances[1]
+              Port: 80
+            - ServerType: Ecs
+              ServerId:
+                Ref: AYWorkerInstances[2]
+              Port: 80
+          - !If
+              - IsSno
+              - - ServerType: Ecs
+                  ServerId:
+                    Ref: AYMasterInstances[0]
+                  Port: 80
+              - - ServerType: Ecs
+                  ServerId:
+                    Ref: AYMasterInstances[0]
+                  Port: 80
+                - ServerType: Ecs
+                  ServerId:
+                    Ref: AYMasterInstances[1]
+                  Port: 80
+                - ServerType: Ecs
+                  ServerId:
+                    Ref: AYMasterInstances[2]
+                  Port: 80
+
+  AYMasterServerGroup6443:
     DependsOn: 
       - AYMasterInstances
     Type: ALIYUN::NLB::ServerGroup
     Properties:
       ServerGroupName:
-        Fn::Sub: ${EnvId}-masters
+        Fn::Sub: ${EnvId}-masters-tcp6443
       VpcId: 
         Ref: AYVPC
       Protocol: TCP
@@ -644,6 +686,37 @@ Resources:
                 Ref: AYMasterInstances[2]
               Port: 6443
 
+  AYMasterServerGroup22623:
+    DependsOn: 
+      - AYMasterInstances
+    Type: ALIYUN::NLB::ServerGroup
+    Properties:
+      ServerGroupName:
+        Fn::Sub: ${EnvId}-masters-tcp22623
+      VpcId: 
+        Ref: AYVPC
+      Protocol: TCP
+      Servers:
+        !If
+          - IsSno
+          - - ServerType: Ecs
+              ServerId:
+                Ref: AYMasterInstances[0]
+              Port: 22623
+          - - ServerType: Ecs
+              ServerId:
+                Ref: AYMasterInstances[0]
+              Port: 22623
+            - ServerType: Ecs
+              ServerId:
+                Ref: AYMasterInstances[1]
+              Port: 22623
+            - ServerType: Ecs
+              ServerId:
+                Ref: AYMasterInstances[2]
+              Port: 22623
+
+  # NLB internal listeners
   NLBInternalListener6443:
     Type: 'ALIYUN::NLB::Listener'
     Properties:
@@ -652,7 +725,7 @@ Resources:
       ListenerProtocol: TCP
       ListenerPort: 6443
       ServerGroupId: 
-        Ref: AYMasterServerGroup
+        Ref: AYMasterServerGroup6443
 
   NLBInternalListener22623:
     Type: 'ALIYUN::NLB::Listener'
@@ -662,37 +735,38 @@ Resources:
       ListenerProtocol: TCP
       ListenerPort: 22623
       ServerGroupId: 
-        Ref: AYMasterServerGroup
+        Ref: AYMasterServerGroup22623
 
-  NLBListener6443:
+  # NLB external listeners
+  NLBExternalListener6443:
     Type: 'ALIYUN::NLB::Listener'
     Properties:
       LoadBalancerId: 
-        Ref: AYNLB
+        Ref: AYNLBExternal
       ListenerProtocol: TCP
       ListenerPort: 6443
       ServerGroupId: 
-        Ref: AYMasterServerGroup
+        Ref: AYMasterServerGroup6443
 
-  NLBListener80:
+  NLBExternalListener80:
     Type: 'ALIYUN::NLB::Listener'
     Properties:
       LoadBalancerId: 
-        Ref: AYNLB
+        Ref: AYNLBExternal
       ListenerProtocol: TCP
       ListenerPort: 80
       ServerGroupId: 
-        Ref: AYWorkerServerGroup
+        Ref: AYWorkerServerGroup80
 
-  NLBListener443:
+  NLBExternalListener443:
     Type: 'ALIYUN::NLB::Listener'
     Properties:
       LoadBalancerId: 
-        Ref: AYNLB
+        Ref: AYNLBExternal
       ListenerProtocol: TCP
       ListenerPort: 443
       ServerGroupId: 
-        Ref: AYWorkerServerGroup
+        Ref: AYWorkerServerGroup443
 
   AYPrivateZone:
     Type: ALIYUN::PVTZ::Zone
@@ -747,7 +821,7 @@ Resources:
       Rr: '*.apps'
       Value:
         Fn::GetAtt:
-          - AYNLBInternal
+          - AYNLBExternal
           - DNSName
       ZoneId:
         Fn::GetAtt:
@@ -765,7 +839,7 @@ Resources:
       Type: CNAME
       Value:
         Fn::GetAtt:
-          - AYNLB
+          - AYNLBExternal
           - DNSName
 
   AYAPPSRecord:
@@ -778,7 +852,7 @@ Resources:
       Type: CNAME
       Value:
         Fn::GetAtt:
-          - AYNLB
+          - AYNLBExternal
           - DNSName
 
 Outputs:

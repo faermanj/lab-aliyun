@@ -9,7 +9,7 @@ export AY_BASE_DOMAIN="alicloud-qe.devcluster.openshift.com"
 # The cluster name prefix
 export AY_PREFIX="jiwei-ali-"
 # The OpenShift version to be installed
-export AY_OCP_VERSION="4.16.0"
+export AY_OCP_VERSION="4.17.0-ec.1"
 
 # The existing SSH public key file
 export SSH_PUBLIC_KEY_FILE="/root/jiwei/openshift-qe.pub"
@@ -18,7 +18,7 @@ export SSH_PUBLIC_KEY_FILE="/root/jiwei/openshift-qe.pub"
 # Whether to create a Single-Node cluster
 export CREATE_SNO_CLUSTER="false"
 # Whether to create a 3-Node compact cluster
-export CREATE_COMPACT_CLUSTER="true"
+export CREATE_COMPACT_CLUSTER="false"
 
 # The control-plane instance type
 # For Single-Node cluster, at least 8 vCPUs and 32 GiB RAM (e.g. "ecs.g6.2xlarge")
