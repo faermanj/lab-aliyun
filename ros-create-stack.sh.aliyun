@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 AY_REGION=${AY_REGION:-"eu-central-1"} 
@@ -10,19 +9,19 @@ export ALIBABA_CLOUD_REGION_ID=$AY_REGION
 
 # Check if the bucket exists
 BUCKET_EXISTS=$(aliyun oss ls | grep $AY_BUCKET_NAME)
-echo "BUCKET_EXISTS [$BUCKET_EXISTS]"
+echo "$(date -u --rfc-3339=seconds) - INFO: BUCKET_EXISTS [$BUCKET_EXISTS]"
 
 if [ -z "$BUCKET_EXISTS" ]; then
-  echo "Bucket $AY_BUCKET_NAME does not exist. Creating..."
+  echo "$(date -u --rfc-3339=seconds) - INFO: Bucket $AY_BUCKET_NAME does not exist. Creating..."
   # Create the bucket. Adjust the --acl (access control list) as per your requirement.
   aliyun oss mb oss://$AY_BUCKET_NAME --region $AY_REGION --acl public-read 
   if [ $? -eq 0 ]; then
-    echo "Bucket $AY_BUCKET_NAME created successfully."
+    echo "$(date -u --rfc-3339=seconds) - INFO: Bucket $AY_BUCKET_NAME created successfully."
   else
-    echo "Failed to create bucket $AY_BUCKET_NAME."
+    echo "$(date -u --rfc-3339=seconds) - ERROR: Failed to create bucket $AY_BUCKET_NAME."
   fi
 else
-  echo "Bucket $AY_BUCKET_NAME already exists."
+  echo "$(date -u --rfc-3339=seconds) - INFO: Bucket $AY_BUCKET_NAME already exists."
 fi
 
 # Upload ROS template to OSS bucket
@@ -34,7 +33,7 @@ aliyun oss set-acl $AY_OBJECT_KEY public-read --region $AY_REGION
 AY_TEMPLATE_URL="https://$AY_BUCKET_NAME.oss-$AY_REGION.aliyuncs.com/$AY_OBJECT_NAME"
 AY_STACK_NAME="${AY_CLUSTER_NAME}"
 
-echo "**** Creating Stack $AY_STACK_NAME with template $AY_TEMPLATE_URL"
+echo "$(date -u --rfc-3339=seconds) - INFO: Creating Stack $AY_STACK_NAME with template $AY_TEMPLATE_URL"
 
 aliyun ros CreateStack --region $AY_REGION \
     --StackName $AY_STACK_NAME \
@@ -71,28 +70,28 @@ AY_STACK_ID=$(jq -r '.StackId' .ay-stack-create.json)
 echo $AY_STACK_ID > .ay-stack-id.txt
 
 if [ ! -z "$AY_STACK_ID" ]; then
-  echo "Stack $AY_STACK_NAME created successfully with ID $AY_STACK_ID."
+  echo "$(date -u --rfc-3339=seconds) - INFO: Stack $AY_STACK_NAME created successfully with ID $AY_STACK_ID."
   aliyun ros GetStack --region $AY_REGION \
     --StackId $AY_STACK_ID
 else
-  echo "Failed to create stack $AY_STACK_NAME."
+  echo "$(date -u --rfc-3339=seconds) - ERROR: Failed to create stack $AY_STACK_NAME."
   exit 1
 fi
 
 while true; do
   AY_STACK_STATUS=$(aliyun ros GetStack --region $AY_REGION --StackId $AY_STACK_ID | jq -r '.Status')
   if [ "$AY_STACK_STATUS" == "CREATE_COMPLETE" ]; then
-    echo "Stack $AY_STACK_NAME created successfully."
+    echo "$(date -u --rfc-3339=seconds) - INFO: Stack $AY_STACK_NAME created successfully."
     break
   elif [ "$AY_STACK_STATUS" == "CREATE_FAILED" ]; then
-    echo "Stack $AY_STACK_NAME creation failed.CREATE_FAILED"
+    echo "$(date -u --rfc-3339=seconds) - ERROR: Stack $AY_STACK_NAME creation failed.CREATE_FAILED"
     break
   elif [ "$AY_STACK_STATUS" == "CREATE_ROLLBACK_COMPLETE" ]; then
-    echo "Stack $AY_STACK_NAME creation failed. CREATE_ROLLBACK_COMPLETE"
+    echo "$(date -u --rfc-3339=seconds) - ERROR: Stack $AY_STACK_NAME creation failed. CREATE_ROLLBACK_COMPLETE"
     break
   else
-    echo "Stack $AY_STACK_NAME status: $AY_STACK_STATUS"
-    sleep 10
+    echo "$(date -u --rfc-3339=seconds) - INFO: Stack $AY_STACK_NAME status: $AY_STACK_STATUS"
+    sleep 30
   fi
 done
 
@@ -104,4 +103,4 @@ echo "Installer SSH: ssh root@$AY_INSTALLER_INSTANCE_PUBLIC_IP"
 aliyun ros GetStack --StackId "$AY_STACK_ID" --region "$AY_REGION" 
 echo "*******"
 
-echo done
+echo "$(date -u --rfc-3339=seconds) - INFO: Done."
