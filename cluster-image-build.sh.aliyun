@@ -14,16 +14,18 @@ AY_BASE_DOMAIN=${AY_BASE_DOMAIN:-"alicloud-dev.devcluster.openshift.com"}
 
 AY_CLUSTER_NAME="$AY_PREFIX$(date +%Y%m%d%H%M%S)"
 export AY_CLUSTER_NAME
+echo "${AY_CLUSTER_NAME}" > .ay-cluster-name
 
 AY_BUCKET_NAME=${AY_BUCKET_NAME:-"$AY_CLUSTER_NAME-bucket"}
 export AY_BUCKET_NAME
+echo "${AY_BUCKET_NAME}" > .ay-oss-bucket-name
 
 SSH_PUBLIC_KEY_FILE=${SSH_PUBLIC_KEY_FILE:-"~/.ssh/id_rsa.pub"}
 if [ -f "${SSH_PUBLIC_KEY_FILE}" ]; then
     AY_SSH_KEY=$(cat "${SSH_PUBLIC_KEY_FILE}")
     export AY_SSH_KEY
 else
-    echo "ERROR: failed to find the ssh public key file '${SSH_PUBLIC_KEY_FILE}', abort" && exit 1
+    echo "$(date -u --rfc-3339=seconds) - ERROR: failed to find the ssh public key file '${SSH_PUBLIC_KEY_FILE}', abort" && exit 1
 fi
 
 echo "=== OpenShift LabAY Install Script $VERSION ==="
@@ -34,7 +36,7 @@ echo "region: $AY_REGION"
 echo "bucket: $AY_BUCKET_NAME"
 
 
-echo "Installing openshift clients"
+echo "$(date -u --rfc-3339=seconds) - INFO: Installing openshift clients"
 
 TMP_DIR="$SCRIPT_DIR/.tmp"
 INSTALL_DIR="$SCRIPT_DIR/.openshift"
@@ -60,10 +62,10 @@ fi
 
 mkdir -p "$INSTALL_DIR"
 
-echo "Verify OSS Bucket"
+echo "$(date -u --rfc-3339=seconds) - INFO: Verify OSS Bucket"
 if ! aliyun oss ls | grep -q $AY_BUCKET_NAME
 then
-    echo "Create alibaba oss bucket"
+    echo "$(date -u --rfc-3339=seconds) - INFO: Create alibaba oss bucket"
     aliyun oss mb oss://$AY_BUCKET_NAME --region $AY_REGION
 fi
 
@@ -76,7 +78,7 @@ cmd="aicli create cluster ${AY_CLUSTER_NAME} -P openshift_version=${AY_OCP_VERSI
 if [[ "${CREATE_SNO_CLUSTER}" == "true" ]]; then
     cmd="${cmd} -P sno=true"
 fi
-echo "Running Command: '${cmd}'"
+echo "$(date -u --rfc-3339=seconds) - Running Command: '${cmd}'"
 eval "${cmd}"
 sleep 10 
 
@@ -85,7 +87,7 @@ export AY_ISO_FILE="${AY_CLUSTER_NAME}.iso"
 
 if ! aliyun oss ls | grep -q $AY_ISO_FILE
 then
-    echo "Download iso from assisted installer"
+    echo "$(date -u --rfc-3339=seconds) - INFO: Download iso from assisted installer"
     aicli download iso "$AY_CLUSTER_NAME"
     qemu-img convert -O qcow2 ${AY_CLUSTER_NAME}.iso ${AY_CLUSTER_NAME}.qcow2
 fi
@@ -96,15 +98,15 @@ export AY_OBJECT_NAME="${AY_CLUSTER_NAME}.qcow2"
 export AY_OBJECT_SIZE=$(stat --format="%s" ${AY_OBJECT_NAME} | awk '{print int(($1/1024**3)+5)}')
 echo "AY_OBJECT_SIZE=$AY_OBJECT_SIZE"
 
-echo "Upload qcow2 to alibaba oss"
+echo "$(date -u --rfc-3339=seconds) - INFO: Upload qcow2 to alibaba oss"
 aliyun oss cp $AY_OBJECT_NAME oss://$AY_BUCKET_NAME/
 
-echo "Verify image upload"
+echo "$(date -u --rfc-3339=seconds) - INFO: Verify image upload"
 export AY_QCOW_URL="oss://$AY_BUCKET_NAME/$AY_OBJECT_NAME"
 aliyun oss ls $AY_QCOW_URL
 
 #create alibaba custom image from qcow 
-echo "Create alibaba custom image from qcow"
+echo "$(date -u --rfc-3339=seconds) - INFO: Create alibaba custom image from qcow"
 export AY_IMAGE_NAME="${AY_CLUSTER_NAME}-image"
 
 # https://www.alibabacloud.com/help/en/ecs/developer-reference/api-ecs-2014-05-26-importimage?spm=a2c63.p38356.0.0.7c4a2122Z0bC7W
@@ -121,8 +123,21 @@ aliyun ecs ImportImage \
     --DiskDeviceMapping.1.Format QCOW2 \
     | tee .import-image.log.json
 
+echo "$(date -u --rfc-3339=seconds) - INFO: Waiting for the ECS image to be available..." 
 export AY_IMAGE_ID=$(jq -r '.ImageId' .import-image.log.json)
-echo "# Container Creation Settings"
+aliyun_ecs_endpoint=$(aliyun ecs DescribeRegions | jq -c ".Regions.Region[] | select(.RegionId | contains(\"${AY_REGION}\"))" | jq -r .RegionEndpoint)
+while true; do
+    image_status=$(aliyun ecs DescribeImages --region=${AY_REGION} --endpoint=${aliyun_ecs_endpoint} --ImageId=${AY_IMAGE_ID} | jq -r .Images.Image[].Status)
+    if [[ "${image_status}" == "Available" ]]; then
+        echo "$(date -u --rfc-3339=seconds) - INFO: The ECS image '${AY_IMAGE_NAME}' ('${AY_IMAGE_ID}') is available."
+        break
+    else
+        echo "$(date -u --rfc-3339=seconds) - INFO: The ECS image '${AY_IMAGE_NAME}' ('${AY_IMAGE_ID}') status: '${image_status}'."
+        sleep 30
+    fi
+done
+
+echo "# Cluster Creation Settings"
 echo "export AY_BASE_DOMAIN=$AY_BASE_DOMAIN"
 echo "export AY_OCP_VERSION=$AY_OCP_VERSION"
 echo "export AY_IMAGE_ID=$AY_IMAGE_ID"

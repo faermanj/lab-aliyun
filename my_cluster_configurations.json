@@ -1,0 +1,14 @@
+{
+    "region": "us-east-1",
+    "base_domain": "alicloud-qe.devcluster.openshift.com",
+    "cluster_name_prefix": "jiwei-ali-",
+    "openshift_version": "4.17.0-ec.1",
+    "ssh_public_key_file": "/root/jiwei/openshift-qe.pub",
+    "control_plane_instance_type": "ecs.g6.2xlarge",
+    "compute_instance_type": "ecs.g6.large",
+    "create_sno_cluster": true,
+    "create_compact_cluster": false,
+    "create_bastion_host": false,
+    "bastion_host_image_id": "m-0xi1wndcxhwnxavcodyj",
+    "bastion_host_ssh_key_pair": "openshift-qe"
+}

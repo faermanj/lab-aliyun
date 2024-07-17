@@ -3,8 +3,14 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
+# Setup the global env vars
 source ./setup_env.sh
+
+# Create ECS image
 source ./cluster-image-build.sh.aliyun
-echo "Waiting for the image to be readable." 
-sleep 180
+
+# Create ROS stack
 source ./ros-create-stack.sh.aliyun
+
+# Start the cluster installation
+source ./start-cluster.sh
