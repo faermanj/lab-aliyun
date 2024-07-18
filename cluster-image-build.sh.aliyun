@@ -116,6 +116,7 @@ aliyun ecs ImportImage \
     --Architecture x86_64 \
     --Platform CoreOS \
     --BootMode UEFI \
+    --ResourceGroupId ${RESOURCE_GROUP_ID} \
     --Description "OpenShift Image for ${AY_CLUSTER_NAME}" \
     --DiskDeviceMapping.1.OSSBucket $AY_BUCKET_NAME \
     --DiskDeviceMapping.1.OSSObject $AY_OBJECT_NAME \
