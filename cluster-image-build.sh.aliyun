@@ -2,13 +2,13 @@
 set -o nounset
 set -o errexit
 set -o pipefail
-set -e
+set -ex
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 SRC_DIR=$(dirname $SCRIPT_DIR)
 
 VERSION="0.0.1"
-AY_REGION=${AY_REGION:-"eu-central-1"} 
+AY_REGION=${AY_REGION:-"us-east-1"} 
 AY_PREFIX=${AY_PREFIX:-"labay"}
 AY_BASE_DOMAIN=${AY_BASE_DOMAIN:-"alicloud-dev.devcluster.openshift.com"}
 
@@ -99,11 +99,11 @@ export AY_OBJECT_SIZE=$(stat --format="%s" ${AY_OBJECT_NAME} | awk '{print int((
 echo "AY_OBJECT_SIZE=$AY_OBJECT_SIZE"
 
 echo "$(date -u --rfc-3339=seconds) - INFO: Upload qcow2 to alibaba oss"
-aliyun oss cp $AY_OBJECT_NAME oss://$AY_BUCKET_NAME/
+aliyun oss cp $AY_OBJECT_NAME oss://$AY_BUCKET_NAME/ --region $AY_REGION
 
 echo "$(date -u --rfc-3339=seconds) - INFO: Verify image upload"
 export AY_QCOW_URL="oss://$AY_BUCKET_NAME/$AY_OBJECT_NAME"
-aliyun oss ls $AY_QCOW_URL
+aliyun oss ls $AY_QCOW_URL --region $AY_REGION
 
 #create alibaba custom image from qcow 
 echo "$(date -u --rfc-3339=seconds) - INFO: Create alibaba custom image from qcow"
