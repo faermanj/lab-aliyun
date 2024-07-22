@@ -20,24 +20,12 @@ Parameters:
   VpcCidrBlock:
     Type: String
     Default: "192.168.0.0/16"
-  VpcName:
-    Type: String
-    Default: ay-cluster-vpc
   VSwitchCidrBlockA:
     Type: String
     Default: "192.168.1.0/24"
   VSwitchCidrBlockB:
     Type: String
     Default: "192.168.2.0/24"
-  VSwitchAName:
-    Type: String
-    Default: ay-vswitch-a
-  VSwitchBName:
-    Type: String
-    Default: ay-vswitch-b
-  SecurityGroupName:
-    Type: String
-    Default: ay-cluster-sg
   # Security
   SSHPublicKeyBody:
     Description: "The file content of the SSH public key file"
@@ -65,7 +53,6 @@ Parameters:
     Default: "alicloud-dev.devcluster.openshift.com"
   ClusterName:
     Type: String
-    Default: "lab-aliyun-cluster"
   BationHostFlag:
     Description: "Whether to create a bastion host"
     Type: Boolean
@@ -75,6 +62,9 @@ Parameters:
     Type: String
   BastionHostSSHKeyPair:
     Description: "The SSH key pair to be used by the bastion host"
+    Type: String
+  ResourceGroupId: 
+    Description: "The resource group ID"
     Type: String
 
 Conditions:
@@ -109,7 +99,9 @@ Resources:
       RegionId:
         Ref: RegionId
       VpcName:
-        Ref: VpcName
+        Fn::Sub: ${EnvId}-vpc
+      ResourceGroupId:
+        Ref: ResourceGroupId
 
   AYVSwitchA:
     Type: "ALIYUN::ECS::VSwitch"
@@ -124,7 +116,7 @@ Resources:
       CidrBlock:
         Ref: VSwitchCidrBlockA
       VSwitchName:
-        Ref: VSwitchAName
+        Fn::Sub: ${EnvId}-vswitch-a
 
   AYVSwitchB:
     Type: "ALIYUN::ECS::VSwitch"
@@ -139,7 +131,7 @@ Resources:
       CidrBlock:
         Ref: VSwitchCidrBlockB
       VSwitchName:
-        Ref: VSwitchBName
+        Fn::Sub: ${EnvId}-vswitch-b
 
   AYSecurityGroup:
     Type: "ALIYUN::ECS::SecurityGroup"
@@ -149,7 +141,9 @@ Resources:
       RegionId:
         Ref: RegionId
       SecurityGroupName:
-        Ref: SecurityGroupName
+        Fn::Sub: ${EnvId}-sg
+      ResourceGroupId:
+        Ref: ResourceGroupId
 
   AYSecurityGroupIngressICMP:
     Type: "ALIYUN::ECS::SecurityGroupIngress"
@@ -329,7 +323,10 @@ Resources:
         Ref: RegionId
       VpcId:
         Ref: AYVPC
-      LoadBalancerName: ay-cluster-nlb-external
+      LoadBalancerName: 
+        Fn::Sub: ${EnvId}-nlb-external
+      ResourceGroupId:
+        Ref: ResourceGroupId
       CrossZoneEnabled: true
       ZoneMappings:
         - VSwitchId:
@@ -355,7 +352,10 @@ Resources:
         Ref: RegionId
       VpcId:
         Ref: AYVPC
-      LoadBalancerName: ay-cluster-nlb-internal
+      LoadBalancerName: 
+        Fn::Sub: ${EnvId}-nlb-internal
+      ResourceGroupId:
+        Ref: ResourceGroupId
       CrossZoneEnabled: true
       ZoneMappings:
         - VSwitchId:
@@ -379,12 +379,18 @@ Resources:
     Properties:
       Bandwidth: "100"
       InternetChargeType: "PayByTraffic"
+      Name: 
+        Fn::Sub: ${EnvId}-eip
+      ResourceGroupId:
+        Ref: ResourceGroupId
 
   AYNatGatewayA:
     Type: "ALIYUN::VPC::NatGateway"
     Properties:
       VpcId: !Ref AYVPC
       VSwitchId: !Ref AYVSwitchA
+      NatGatewayName: 
+        Fn::Sub: ${EnvId}-ngw
 
   AYEIPAAssociation:
     Type: "ALIYUN::VPC::EIPAssociation"
@@ -430,6 +436,8 @@ Resources:
         Fn::Sub: ${EnvId}-ssh-key-pair
       PublicKeyBody:
         Ref: SSHPublicKeyBody
+      ResourceGroupId:
+        Ref: ResourceGroupId
 
   AYBastionInstance:
     Count:
@@ -443,6 +451,8 @@ Resources:
         Fn::Sub: ${EnvId}-bastion-host
       HostName:
         Fn::Sub: ${EnvId}-bastion-host
+      ResourceGroupId:
+        Ref: ResourceGroupId
       InstanceType:
         Ref: WorkerInstanceType
       ImageId:
@@ -472,6 +482,10 @@ Resources:
     Properties:
       InstanceName:
         Fn::Sub: ${EnvId}-master-${ALIYUN::Index}
+      HostName:
+        Fn::Sub: ${EnvId}-master-${ALIYUN::Index}
+      ResourceGroupId:
+        Ref: ResourceGroupId
       InstanceType:
         Ref: MasterInstanceType
       ImageId:
@@ -527,6 +541,10 @@ Resources:
     Properties:
       InstanceName:
         Fn::Sub: ${EnvId}-worker-${ALIYUN::Index}
+      HostName:
+        Fn::Sub: ${EnvId}-worker-${ALIYUN::Index}
+      ResourceGroupId:
+        Ref: ResourceGroupId
       InstanceType:
         Ref: WorkerInstanceType
       ImageId:
@@ -577,6 +595,8 @@ Resources:
     Properties:
       ServerGroupName:
         Fn::Sub: ${EnvId}-workers-tcp443
+      ResourceGroupId:
+        Ref: ResourceGroupId
       VpcId: 
         Ref: AYVPC
       Protocol: TCP
@@ -619,6 +639,8 @@ Resources:
     Properties:
       ServerGroupName:
         Fn::Sub: ${EnvId}-workers-tcp80
+      ResourceGroupId:
+        Ref: ResourceGroupId
       VpcId: 
         Ref: AYVPC
       Protocol: TCP
@@ -663,6 +685,8 @@ Resources:
     Properties:
       ServerGroupName:
         Fn::Sub: ${EnvId}-masters-tcp6443
+      ResourceGroupId:
+        Ref: ResourceGroupId
       VpcId: 
         Ref: AYVPC
       Protocol: TCP
@@ -693,6 +717,8 @@ Resources:
     Properties:
       ServerGroupName:
         Fn::Sub: ${EnvId}-masters-tcp22623
+      ResourceGroupId:
+        Ref: ResourceGroupId
       VpcId: 
         Ref: AYVPC
       Protocol: TCP
@@ -773,6 +799,8 @@ Resources:
     Properties:
       ZoneName: 
         Fn::Sub: ${ClusterName}.${DomainName}
+      ResourceGroupId:
+        Ref: ResourceGroupId
 
   AYPrivateZoneVpcBinder:
     Type: ALIYUN::PVTZ::ZoneVpcBinder
@@ -857,15 +885,26 @@ Resources:
 
 Outputs:
   VPCID:
+    Description: "The cluster's VPC ID"
     Value:
       Ref: AYVPC
   VSwitchAID:
+    Description: "The cluster's 1st vSwitch ID"
     Value:
       Ref: AYVSwitchA
   VSwitchBID:
+    Description: "The cluster's 2nd vSwitch ID"
     Value:
       Ref: AYVSwitchA
   SecurityGroupID:
+    Description: "The cluster's security group ID"
     Value:
       Ref: AYSecurityGroup
+  BastionHostPublicIP:
+    Description: "The public IP address of the bastion host"
+    Condition: CreateBationHost
+    Value:
+      Fn::GetAtt
+        - AYBastionInstance
+        - PublicIp
 

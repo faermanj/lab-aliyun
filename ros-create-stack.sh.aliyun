@@ -37,6 +37,7 @@ echo "$(date -u --rfc-3339=seconds) - INFO: Creating Stack $AY_STACK_NAME with t
 
 aliyun ros CreateStack --region $AY_REGION \
     --StackName $AY_STACK_NAME \
+    --ResourceGroupId ${RESOURCE_GROUP_ID} \
     --Parameters.1.ParameterKey="RegionId" \
     --Parameters.1.ParameterValue="$AY_REGION" \
     --Parameters.2.ParameterKey="SSHPublicKeyBody" \
@@ -63,6 +64,8 @@ aliyun ros CreateStack --region $AY_REGION \
     --Parameters.12.ParameterValue="${CONTROL_PLANE_INSTANCE_TYPE:-'ecs.g6.xlarge'}" \
     --Parameters.13.ParameterKey="WorkerInstanceType" \
     --Parameters.13.ParameterValue="${COMPUTE_INSTANCE_TYPE:-'ecs.g6.large'}" \
+    --Parameters.14.ParameterKey="ResourceGroupId" \
+    --Parameters.14.ParameterValue="${RESOURCE_GROUP_ID}" \
     --TemplateURL $AY_TEMPLATE_URL \
     --read-timeout 60 | tee .ay-stack-create.json
 
@@ -95,11 +98,13 @@ while true; do
   fi
 done
 
-# get InstallerInstancePublicIp from stack
-AY_INSTALLER_INSTANCE_PUBLIC_IP=$(aliyun ros GetStack --region $AY_REGION --StackId $AY_STACK_ID | jq -r '.Outputs[] | select(.OutputKey == "InstallerInstancePublicIp") | .OutputValue')
+if [[ "${CREATE_BASTION_HOST}" == "true" ]]; then
+  # get BastionHostPublicIP from stack
+  BASTION_HOST_PUBLIC_IP=$(aliyun ros GetStack --region $AY_REGION --StackId $AY_STACK_ID | jq -r '.Outputs[] | select(.OutputKey == "BastionHostPublicIP") | .OutputValue')
+  echo "Bastion host SSH: 'ssh -i <the ssh private key> cloud-user@${BASTION_HOST_PUBLIC_IP}'"
+fi
 echo "*******"
 echo "Stack Id: $AY_STACK_ID"
-echo "Installer SSH: ssh root@$AY_INSTALLER_INSTANCE_PUBLIC_IP"
 aliyun ros GetStack --StackId "$AY_STACK_ID" --region "$AY_REGION" 
 echo "*******"
 

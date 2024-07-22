@@ -4,7 +4,7 @@ set -o errexit
 set -o pipefail
 
 # The maximum seconds to wait for the cluster turns "ready" (to start installation)
-CLUSTER_READY_TIMEOUT=600
+CLUSTER_READY_TIMEOUT=1200
 
 # The number of cluster machines
 HOSTS_COUNT=6

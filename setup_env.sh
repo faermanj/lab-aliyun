@@ -62,3 +62,6 @@ export BASTION_HOST_IMAGE_ID
 # SSH key pair not working for bastion host, not sure why yet.
 BASTION_HOST_SSH_KEY_PAIR=$(jq -r -c .bastion_host_ssh_key_pair "${CLUSTER_CONFIGURATION_JSON}")
 export BASTION_HOST_SSH_KEY_PAIR
+
+RESOURCE_GROUP_ID=$(jq -r -c .resource_group_id "${CLUSTER_CONFIGURATION_JSON}")
+export RESOURCE_GROUP_ID
