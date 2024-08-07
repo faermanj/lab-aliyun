@@ -39,11 +39,11 @@ while true; do
 done
 
 echo -e "\n$(date -u --rfc-3339=seconds) - INFO: (3/4) Deleting the OSS bucket..."
-cmd="aliyun oss rm -f oss://${AY_BUCKET_NAME}/${AY_STACK_NAME}.qcow2"
+cmd="aliyun oss rm oss://${AY_BUCKET_NAME}/${AY_STACK_NAME}.qcow2 -f"
 run_command "${cmd}"
-cmd="aliyun oss rm -f oss://${AY_BUCKET_NAME}/ros/template.ros.yaml"
+cmd="aliyun oss rm oss://${AY_BUCKET_NAME}/ros/template.ros.yaml -f"
 run_command "${cmd}"
-cmd="aliyun oss rm -f --bucket oss://${AY_BUCKET_NAME}"
+cmd="aliyun oss rm oss://${AY_BUCKET_NAME}  -f --bucket "
 run_command "${cmd}"
 
 echo -e "\n$(date -u --rfc-3339=seconds) - INFO: (4/4) Deleting the ECS image..."
