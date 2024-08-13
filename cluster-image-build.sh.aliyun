@@ -67,7 +67,8 @@ if ! aliyun oss ls | grep -q $AY_BUCKET_NAME
 then
     echo "$(date -u --rfc-3339=seconds) - INFO: Create alibaba oss bucket"
     aliyun oss mb oss://$AY_BUCKET_NAME --region $AY_REGION
-    aliyun oss resource-group --method put oss://$AY_BUCKET_NAME resource-group.xml
+    # This is not working. Check the correct command
+    # aliyun oss resource-group --method put oss://$AY_BUCKET_NAME resource-group.xml
 fi
 
 ## Assisted Installer Section ##
