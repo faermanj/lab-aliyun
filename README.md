@@ -12,8 +12,8 @@ This repository is not maintained by Red Hat or AliBaba, it's an independent tem
 
 ## Cluster Deployment Guide
 
-The following process, scripts and templates are our suggestion for installing a cluster.
-You're expected to adapt to your scenario and configuration, as indicated in each step.
+Follow this process to provision your cloud resources and install an OpenShift Cluster automatically on Alibaba Cloud.
+If you'd like, this recording also demonstrates the entire process: https://youtu.be/9sTzdy8n-_0
 
 ### Account Creation
 
@@ -49,7 +49,6 @@ Try listing your clusters:
 ```bash
 aicli list clusters
 ```
-
 
 ### Configure the Alibaba CLI
 
