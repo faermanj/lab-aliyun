@@ -108,7 +108,7 @@ You may want to change that template to include other services, or add that temp
 
 ### Cluster Provisioning
 
-The entrypoint script `lab-aliyun.sh.aliyun` can be executed and all steps should be executed automatically.
+The entrypoint script `lab-aliyun.sh.aliyun` can be executed and all steps should follow automatically.
 In the end, your cluster will be installed and setup correctly.
 The scripts create temporary files with logs, images and resource identities in the root of this repository, where it's exepected to execute.
 

@@ -1,9 +1,9 @@
 {
     "region": "us-east-1",
-    "base_domain": "alicloud-qe.devcluster.openshift.com",
-    "cluster_name_prefix": "jiwei-ali-",
+    "base_domain": "alicloud-dev.devcluster.openshift.com",
+    "cluster_name_prefix": "jufaerma-",
     "openshift_version": "4.16.2",
-    "ssh_public_key_file": "/root/jiwei/openshift-qe.pub",
+    "ssh_public_key_file": "/home/gitpod/.ssh/id_rsa.pub",
     "control_plane_instance_type": "ecs.g6.xlarge",
     "compute_instance_type": "ecs.g6.large",
     "create_sno_cluster": false,
@@ -11,5 +11,5 @@
     "create_bastion_host": false,
     "bastion_host_image_id": "m-0xi1wndcxhwnxavcodyj",
     "bastion_host_ssh_key_pair": "openshift-qe",
-    "resource_group_id": "rg-aek2wky7lxk4f5y"
+    "resource_group_id": "rg-aek4mzon3le3dkq"
 }
